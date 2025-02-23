@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { IService } from "./services/base.service.js";
 import chatRouter from "./routes/chat.js";
+import searchRouter from "./routes/search.js";
 import evaluationRouter from "./routes/evaluation.js";
 import cookieParser from "cookie-parser";
 import { AnyType } from "./utils/index.js";
@@ -46,6 +47,7 @@ const twitterService = TwitterService.getInstance();
 
 app.use("/chat", chatRouter);
 app.use("/evaluation", evaluationRouter);
+app.use("/search", searchRouter);
 
 app.use((req, _res, next) => {
   console.log("Request URL:", req.originalUrl);
