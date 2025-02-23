@@ -1,0 +1,17 @@
+Declaration
+export STARKNET_KEYSTORE=~/.config/starkli/keystore
+
+starkli declare --strk --account ~/.config/starkli/account /Users/romariokavin/Documents/PersonalProjects/NamiStarknet/contracts/target/dev/contracts_NamiCore.contract_class.json
+
+starkli deploy --account ~/.config/starkli/account --strk 0x01d3a9c4b9f0789889dac80b9c8fa42a2df4f6f3cf2559d24f8bfa19a37b8c5c 0x436172626f6e58 0x435258 0x014a6241effccd2914db4c680867cbc65bde5d66d5f1ccce60ec5f3609dbe5f7
+
+usdc_address=0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080
+
+Class Hash:
+NamiCore:0x01ffd3a7ae7729ad4010a7aabf5a113fdda74b6af88a8a304c441726dd19992e
+NamiDisaster:0x046f34d07909c974b29521f7dd3e057e7b24f66534d14ae2b6558335240c2458
+
+starkli deploy --account ~/.config/starkli/account --strk 0x01ffd3a7ae7729ad4010a7aabf5a113fdda74b6af88a8a304c441726dd19992e 0x046f34d07909c974b29521f7dd3e057e7b24f66534d14ae2b6558335240c2458 0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080
+
+Deployments:
+Core:0x04cf129a9a73e2b0854d21efc34f9d1a81fb7b4de9079a1eb74890a0892dc079
