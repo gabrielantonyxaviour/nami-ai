@@ -28,6 +28,7 @@ interface StarkDonation {
   token: string | null;
   amount: number | null;
   usd_amount: number | null;
+  donor_address: string | null;
 }
 
 interface StarkClaim {

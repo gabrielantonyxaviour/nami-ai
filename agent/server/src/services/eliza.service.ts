@@ -161,6 +161,45 @@ export class MessageManager {
     return response;
   }
 
+  public async handleGeneration(state: any, promptTemplate: string) {
+    const context = composeContext({
+      state,
+      template: promptTemplate,
+    });
+
+    const completion = await this.openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: context,
+        },
+      ],
+      model: "deepseek/deepseek-r1-distill-llama-70b",
+    });
+
+    elizaLogger.debug("COMPLETION  RESPONES");
+    elizaLogger.debug("Received response from HeuristAI model.");
+    console.log(completion);
+    const messageContent = completion.choices[0].message.content;
+    if (!messageContent) {
+      console.error("❌ No response from generateMessageResponse");
+      return { response: "No disasters found" };
+    }
+    // const response = {
+    //   text: messageContent as string,
+    // };
+    console.log(messageContent);
+    const cleanJson = messageContent
+      .replace(/^```json\n/, "")
+      .replace(/\n```$/, "");
+    console.log(cleanJson);
+    console.log(JSON.parse(cleanJson));
+    elizaLogger.debug("[_generateResponse] check2");
+
+    elizaLogger.debug("[_generateResponse] check3");
+    return JSON.parse(cleanJson);
+  }
+
   public async handleDisasterValidation({
     earthquakes,
     disasters,
