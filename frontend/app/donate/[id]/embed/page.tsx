@@ -22,7 +22,7 @@ import {
   zeroAddress,
 } from "viem";
 import { Input } from "@/components/ui/input";
-import { useAccount } from "wagmi";
+import { useAccount, useSwitchChain } from "wagmi";
 import { toast } from "@/hooks/use-toast";
 import {
   ConnectButton,
@@ -57,6 +57,7 @@ export default function Donate({
   const [openEvmPayModal, setOpenEvmPayModal] = useState(false);
   const [donateFundsAmount, setDonateFundsAmount] = useState("0");
   const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>("");
+  const { switchChainAsync } = useSwitchChain();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "crypto" | "fiat" | null
   >(null);
@@ -125,7 +126,7 @@ export default function Donate({
     setApply(applyParam);
   }, [params]);
   return disaster ? (
-    <div className="w-full h-full mx-auto p-6 sen bg-[#FFFCF8]">
+    <div className="w-full h-full mx-auto p-6 sen bg-[#F5EFE0]">
       <>
         <div className="flex flex-col space-y-4 py-4 max-w-[1000px] max-h-[950px]">
           <div className="flex items-center justify-between">
@@ -216,13 +217,19 @@ export default function Donate({
                         placeholder="Enter amount"
                         className="w-3/5"
                         value={donateFundsAmount}
+                        disabled={
+                          selectedTokenAddress === "" || selectedChainId == 0
+                        }
                         onChange={(e) => setDonateFundsAmount(e.target.value)}
                       />
                       <Select
                         value={selectedTokenAddress}
                         onValueChange={setSelectedTokenAddress}
                       >
-                        <SelectTrigger className="h-10 px-3 py-2 w-2/5 flex items-center justify-between">
+                        <SelectTrigger
+                          className="h-10 px-3 py-2 w-2/5 flex items-center justify-between"
+                          disabled={selectedChainId == 0}
+                        >
                           <SelectValue placeholder="Select Token">
                             {selectedTokenAddress && (
                               <div className="flex items-center justify-between ">
@@ -249,7 +256,7 @@ export default function Donate({
                                   </div>
                                 </div>
                                 {/* TODO: used absolute right-16 to align the balance to the right of the token name  because the issue with Justify*/}
-                                <div className="text-base text-primary tabular-nums">
+                                {/* <div className="text-base text-primary tabular-nums">
                                   {tokenBalances[selectedTokenAddress]
                                     ? parseFloat(
                                         tokenBalances[selectedTokenAddress]
@@ -258,7 +265,7 @@ export default function Donate({
                                         maximumFractionDigits: 6,
                                       })
                                     : "0.00"}
-                                </div>
+                                </div> */}
                               </div>
                             )}
                           </SelectValue>
@@ -333,7 +340,17 @@ export default function Donate({
                     chainId !== selectedChainId ? (
                       <Button
                         className="bg-primary w-full"
-                        onClick={openChainModal}
+                        disabled={selectedChainId == 0}
+                        onClick={async () => {
+                          if (!selectedChainId) return;
+                          await switchChainAsync({
+                            chainId: selectedChainId as
+                              | 11155111
+                              | 84532
+                              | 80002
+                              | 534351,
+                          });
+                        }}
                       >
                         Switch Network
                       </Button>

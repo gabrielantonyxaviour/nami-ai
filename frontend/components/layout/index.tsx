@@ -18,7 +18,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (pathParts.length > 1 && pathParts[1] == "embed") ||
     (pathParts.length > 3 && pathParts[3] == "embed") ? (
-    <div className="h-screen flex flex-col w-screen select-text bg-[#FFFCF8]">
+    <div className="h-screen flex flex-col w-screen select-text bg-[#F5EFE0]">
       {children}
     </div>
   ) : !loading ? (
