@@ -142,6 +142,7 @@ export class SearchService extends BaseService {
               location: location || "Earth",
               created_at: new Date().toISOString(),
               tweet_url: tweetUrl,
+              funds_raised: "0",
             });
           }
         }

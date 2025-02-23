@@ -63,6 +63,7 @@ export class SupabaseService extends BaseService {
     type: string;
     location: string;
     created_at: string;
+    funds_raised: string;
     tweet_url: string;
   }) {
     if (this.supabase) {
