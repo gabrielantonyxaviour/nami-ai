@@ -35,12 +35,45 @@ export class SupabaseService extends BaseService {
   }
 
   public async start(): Promise<void> {
-    // TODO: When you get a donation above certain amount, you can tweet about it as a reply to your original tweet.
+    // TODO: When a donation above certain amount is made, you can tweet about it as a reply to your original tweet.
     // TODO: When the total donations cross the threshold, you can tweet about it.
     // TODO: After a certain time, you can tweet about the total donations received and close and thank everyone.
+    // TODO: When some NGO claims from the vault, make a tweet about it
   }
 
   public async getLastestDisasters(): Promise<any[]> {
+    if (this.supabase) {
+      const { data, error } = await this.supabase
+        .from("nami_disasters")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error(error);
+      }
+      return data || [];
+    }
+    return [];
+  }
+
+  public async createDisaster(disaster: {
+    title: string;
+    description: string;
+    funds_needed: string;
+    sources: string[];
+    type: string;
+    location: string;
+    created_at: string;
+    tweet_url: string;
+  }) {
+    if (this.supabase) {
+      const { data, error } = await this.supabase
+        .from("nami_disasters")
+        .insert([disaster]);
+      if (error) {
+        console.error(error);
+      }
+      return data || [];
+    }
     return [];
   }
 

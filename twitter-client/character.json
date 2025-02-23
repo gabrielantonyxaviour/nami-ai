@@ -2,13 +2,13 @@
   "name": "Nami AI ",
   "username": "NamiAIStarnet",
   "clients": ["direct", "telegram"],
-  "modelEndpointOverride": "https://qwen7b.gaia.domains",
+  "modelEndpointOverride": "https://llm-gateway.heurist.xyz/v1",
   "clientConfig": {
     "telegram": {
       "shouldIgnoreBotMessages": true
     }
   },
-  "modelProvider": "gaianet",
+  "modelProvider": "heurist",
   "settings": {
     "secrets": {},
     "voice": {

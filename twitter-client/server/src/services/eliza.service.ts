@@ -34,8 +34,18 @@ import { SqliteDatabaseAdapter } from "@ai16z/adapter-sqlite";
 import Database from "better-sqlite3";
 import { ExecutedTrade, TradePlay } from "../types.js";
 
+interface ValidationResponse {
+  response?: string;
+  title?: string;
+  location?: string;
+  description?: string;
+  source_url?: string;
+  funds_needed?: string;
+  type?: string;
+}
+
 const handleDisasterValidationFooter =
-  '\nIf Disaster is present, response format should be formatted in a JSON block like this:\n```json\n{ "title": "string", "location": "string", "description": "string", "source_url": "string", "funds_needed": "string" }\n```';
+  '```json\n{ "title": "string", "location": "string", "description": "string", "source_url": "string", "funds_needed": "number", "type": "string" }\n```';
 
 const messageHandlerTemplate =
   `About {{agentName}}:
@@ -71,8 +81,18 @@ const handleDisasterValidationTemplate =
   "Latest Disasters that are already posted. SHOULD NOT BE included again"
 {{latestDisasters}}
 
-Your job is to find the most serious disaster (if present) and return its data as a response along with an estimated funds needed to recover from the disaster. Estimate anywhere around $1k to $100k based on the severity of the disaster. Earthquakes that have more 5.5 magnitude have some effect but not as much as a disaster. Floods, wildfires, and other natural disasters are serious too. Twitter data can sometimes be out of context and give posts unrelated to disasters.
-If there are no serious disasters, return "No serious disasters found" as a response.\n
+Your job is to find ONLY ONE most serious disaster (if present) and return its data as a response along with an estimated funds needed to recover from the disaster. 
+Estimate anywhere around 1000 to 100000. Foor small unserious disasters, the amount needed should be really low. It should be high only for very serious disasters. 
+based on the severity of the disaster. Earthquakes that have more 5.5 magnitude have some effect but not as much as a disaster. Floods, wildfires, and other natural disasters are serious too. 
+Twitter data can sometimes be out of context and give posts unrelated to disasters.
+
+
+If there are NO serious disasters, Your response should be formatted in a JSON block like this:
+\`\`\`json\n{ "response": "No disasters found" }\`\`\`\n
+
+OR 
+
+If there is the ONE MOST serious disaster found, your response should be formatted in a JSON block like this:
 
   ` + handleDisasterValidationFooter;
 
@@ -90,8 +110,8 @@ export class MessageManager {
   constructor(runtime: IAgentRuntime) {
     this.runtime = runtime;
     this.openai = new OpenAI({
-      apiKey: process.env.GAIANET_API_KEY || "",
-      baseURL: "https://qwen7b.gaia.domains",
+      apiKey: process.env.HEURIST_API_KEY || "",
+      baseURL: "https://llm-gateway.heurist.xyz/v1",
     });
   }
 
@@ -103,7 +123,7 @@ export class MessageManager {
   ): Promise<Content | null> {
     const { userId, roomId } = message;
     elizaLogger.debug("[_generateResponse] check1");
-    elizaLogger.debug("Initializing EternalAI model.");
+    elizaLogger.debug("Initializing HeuristAI model.");
 
     const completion = await this.openai.chat.completions.create({
       messages: [
@@ -112,14 +132,13 @@ export class MessageManager {
           content: context,
         },
       ],
-      model: "qwen-2.5-coder-0.5b",
+      model: "deepseek/deepseek-r1-distill-llama-70b",
     });
 
     elizaLogger.debug("COMPLETION  RESPONES");
-    elizaLogger.debug("Received response from EternalAI model.");
+    elizaLogger.debug("Received response from HeuristAI model.");
 
-    const messageContent = JSON.parse(completion as any).choices[0].message
-      .content;
+    const messageContent = completion.choices[0].message.content;
     if (!messageContent) {
       console.error("❌ No response from generateMessageResponse");
       return null;
@@ -152,7 +171,7 @@ export class MessageManager {
     disasters: any[];
     tweets: any[];
     latestDisasters: any[];
-  }): Promise<void> {
+  }): Promise<ValidationResponse> {
     const context = composeContext({
       state: {
         earthquakes: earthquakes
@@ -218,25 +237,30 @@ export class MessageManager {
           content: context,
         },
       ],
-      model: "qwen-2.5-coder-0.5b",
+      model: "deepseek/deepseek-r1-distill-llama-70b",
     });
 
     elizaLogger.debug("COMPLETION  RESPONES");
-    elizaLogger.debug("Received response from EternalAI model.");
+    elizaLogger.debug("Received response from HeuristAI model.");
     console.log(completion);
-    const messageContent = JSON.parse(completion as any).choices[0].message
-      .content;
+    const messageContent = completion.choices[0].message.content;
     if (!messageContent) {
       console.error("❌ No response from generateMessageResponse");
-      return;
+      return { response: "No disasters found" };
     }
     // const response = {
     //   text: messageContent as string,
     // };
     console.log(messageContent);
+    const cleanJson = messageContent
+      .replace(/^```json\n/, "")
+      .replace(/\n```$/, "");
+    console.log(cleanJson);
+    console.log(JSON.parse(cleanJson));
     elizaLogger.debug("[_generateResponse] check2");
 
     elizaLogger.debug("[_generateResponse] check3");
+    return JSON.parse(cleanJson);
     // store the response in the database
 
     // await this.runtime.databaseAdapter.log({
@@ -390,8 +414,8 @@ export class ElizaService extends BaseService {
     try {
       this.runtime = new AgentRuntime({
         databaseAdapter: db,
-        token: process.env.GAIANET_API_KEY || "",
-        modelProvider: character.modelProvider || ModelProviderName.OPENAI,
+        token: process.env.HEURIST_API_KEY || "",
+        modelProvider: character.modelProvider || ModelProviderName.HEURIST,
         character,
         conversationLength: 4096,
         plugins: [],
