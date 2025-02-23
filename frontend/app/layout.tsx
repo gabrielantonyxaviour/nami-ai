@@ -1,4 +1,3 @@
-import "@coinbase/onchainkit/styles.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";

@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  idToChain,
   idToChainInfo,
   idToTokenInfo,
   KINTO_CORE_ABI,
@@ -30,25 +29,7 @@ import {
   scrollSepolia,
   sepolia,
 } from "viem/chains";
-import {
-  ConnectWallet,
-  Wallet,
-  WalletDropdown,
-  WalletDropdownBasename,
-  WalletDropdownFundLink,
-  WalletDropdownLink,
-  WalletDropdownDisconnect,
-  WalletDefault,
-  ConnectWalletText,
-} from "@coinbase/onchainkit/wallet";
-import {
-  Address,
-  Avatar,
-  Name,
-  Identity,
-  EthBalance,
-} from "@coinbase/onchainkit/identity";
-import CoinbaseConnectWallet from "../ui/custom/connect-button/coinbase";
+
 import { useEnvironmentStore } from "../context";
 import { fetchKYCViewerInfo, shortenAddress } from "@/lib/utils";
 import {
@@ -63,7 +44,6 @@ import {
 } from "viem";
 import { Input } from "../ui/input";
 import { useAccount } from "wagmi";
-import { FundButton } from "@coinbase/onchainkit/fund";
 import { DropdownMenu } from "../ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { useChainModal, useConnectModal } from "@rainbow-me/rainbowkit";
@@ -149,40 +129,6 @@ export default function DonateHero({ disaster }: { disaster: Disaster }) {
               />
             </div>
 
-            <div className="flex space-x-3 justify-center">
-              {Object.values(idToChainInfo)
-                .sort((a, b) => a.id - b.id)
-                .map((chainInfo) =>
-                  apply ? (
-                    <Image
-                      key={chainInfo.id}
-                      src={chainInfo.image}
-                      width={32}
-                      height={32}
-                      className={
-                        "select-none rounded-full pointer-events-none transition duration-200 ease-in-out opacity-40"
-                      }
-                      alt={chainInfo.name}
-                    />
-                  ) : (
-                    <Image
-                      key={chainInfo.id}
-                      src={chainInfo.image}
-                      width={32}
-                      height={32}
-                      className={
-                        selectedChainId === chainInfo.chainId
-                          ? "opacity-100 select-none rounded-full  transition duration-200 ease-in-out"
-                          : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full  transition duration-200 ease-in-out"
-                      }
-                      alt={chainInfo.name}
-                      onClick={() => {
-                        setSelectedChainId(chainInfo.chainId);
-                      }}
-                    />
-                  )
-                )}
-            </div>
             <div>
               {apply ? (
                 <Button
@@ -226,16 +172,9 @@ export default function DonateHero({ disaster }: { disaster: Disaster }) {
                     >
                       Pay with Crypto
                     </Button>
-                    <FundButton
-                      className={`${buttonVariants({
-                        variant: "outline",
-                      })} my-2 dark:text-white text-black flex-1`}
-                      text="Pay with Credit Card"
-                      hideIcon={true}
-                    />
                   </div>
                 ) : (
-                  <CoinbaseConnectWallet text="Connect with Coinbase" />
+                  <div></div>
                 )
               ) : selectedChainId == kinto.id ? (
                 <Button
@@ -563,48 +502,48 @@ export default function DonateHero({ disaster }: { disaster: Disaster }) {
                         : polygonAmoy,
                     transport: custom(window.ethereum),
                   });
-                  try {
-                    console.log(selectedTokenAddress);
-                    console.log(parseUnits(donateFundsAmount, 18));
-                    console.log(address);
-                    console.log(vaultAddress);
-                    if (selectedTokenAddress == zeroAddress) {
-                      await walletClient.sendTransaction({
-                        account: address as `0x${string}`,
-                        to: vaultAddress,
-                        value: parseUnits(donateFundsAmount, 18),
-                        chain: idToChain[selectedChainId],
-                      });
-                      setOverallDonations(parseInt(donateFundsAmount));
-                      toast({
-                        title: "Donation Successful",
-                        description: "Thank you for your donation",
-                      });
-                      setOpenEvmPayModal(false);
-                    } else {
-                      const { request } = await publicClient.simulateContract({
-                        account: address as `0x${string}`,
-                        address: selectedTokenAddress,
-                        abi: erc20Abi,
-                        functionName: "transfer",
-                        chain: idToChain[selectedChainId],
-                        args: [vaultAddress, parseUnits(donateFundsAmount, 18)],
-                      });
-                      await walletClient.writeContract(request);
-                      setOverallDonations(parseInt(donateFundsAmount));
-                      toast({
-                        title: "Donation Successful!",
-                        description: "Thank you for your donation",
-                      });
-                      setOpenEvmPayModal(false);
-                    }
-                  } catch (e) {
-                    console.log(e);
-                    toast({
-                      title: "Insufficient Funds",
-                      description: "Please check your balance",
-                    });
-                  }
+                  // try {
+                  //   console.log(selectedTokenAddress);
+                  //   console.log(parseUnits(donateFundsAmount, 18));
+                  //   console.log(address);
+                  //   console.log(vaultAddress);
+                  //   if (selectedTokenAddress == zeroAddress) {
+                  //     await walletClient.sendTransaction({
+                  //       account: address as `0x${string}`,
+                  //       to: vaultAddress,
+                  //       value: parseUnits(donateFundsAmount, 18),
+                  //       chain: idToChain[selectedChainId],
+                  //     });
+                  //     setOverallDonations(parseInt(donateFundsAmount));
+                  //     toast({
+                  //       title: "Donation Successful",
+                  //       description: "Thank you for your donation",
+                  //     });
+                  //     setOpenEvmPayModal(false);
+                  //   } else {
+                  //     const { request } = await publicClient.simulateContract({
+                  //       account: address as `0x${string}`,
+                  //       address: selectedTokenAddress,
+                  //       abi: erc20Abi,
+                  //       functionName: "transfer",
+                  //       chain: idToChain[selectedChainId],
+                  //       args: [vaultAddress, parseUnits(donateFundsAmount, 18)],
+                  //     });
+                  //     await walletClient.writeContract(request);
+                  //     setOverallDonations(parseInt(donateFundsAmount));
+                  //     toast({
+                  //       title: "Donation Successful!",
+                  //       description: "Thank you for your donation",
+                  //     });
+                  //     setOpenEvmPayModal(false);
+                  //   }
+                  // } catch (e) {
+                  //   console.log(e);
+                  //   toast({
+                  //     title: "Insufficient Funds",
+                  //     description: "Please check your balance",
+                  //   });
+                  // }
                 }}
               >
                 Donate now
