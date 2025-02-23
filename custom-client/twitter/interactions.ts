@@ -359,7 +359,7 @@ export class TwitterInteractionClient {
         id: tweetId,
         agentId: this.runtime.agentId,
         content: {
-          text: tweet.text,
+          text: tweet.text!,
           url: tweet.permanentUrl,
           imageUrls: tweet.photos?.map((photo) => photo.url) || [],
           inReplyTo: tweet.inReplyToStatusId
@@ -503,7 +503,7 @@ export class TwitterInteractionClient {
           }
 
           const responseTweetId =
-            responseMessages[responseMessages.length - 1]?.content?.tweetId;
+            responseMessages[responseMessages.length - 1]?.content!.tweetId;
 
           await this.runtime.processActions(
             message,
@@ -560,7 +560,7 @@ export class TwitterInteractionClient {
         const roomId = stringToUuid(
           currentTweet.conversationId + "-" + this.runtime.agentId
         );
-        const userId = stringToUuid(currentTweet.userId);
+        const userId = stringToUuid(currentTweet.userId!);
 
         await this.runtime.ensureConnection(
           userId,
@@ -584,22 +584,21 @@ export class TwitterInteractionClient {
                 )
               : undefined,
           },
-          createdAt: currentTweet.timestamp * 1000,
+          createdAt: (currentTweet.timestamp || 0) * 1000,
           roomId,
           userId:
             currentTweet.userId === this.twitterUserId
               ? this.runtime.agentId
-              : stringToUuid(currentTweet.userId),
-          embedding: getEmbeddingZeroVector(),
+              : stringToUuid(currentTweet.userId!),
         });
       }
 
-      if (visited.has(currentTweet.id)) {
+      if (visited.has(currentTweet.id!)) {
         console.log("Already visited tweet:", currentTweet.id);
         return;
       }
 
-      visited.add(currentTweet.id);
+      visited.add(currentTweet.id!);
       thread.unshift(currentTweet);
 
       if (currentTweet.inReplyToStatusId) {
