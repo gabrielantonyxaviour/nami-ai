@@ -18,6 +18,13 @@ import {
   sepolia,
 } from "viem/chains";
 
+export const idToChain: Record<number, Chain> = {
+  [baseSepolia.id]: baseSepolia,
+  [polygonAmoy.id]: polygonAmoy,
+  [scrollSepolia.id]: scrollSepolia,
+  [sepolia.id]: sepolia,
+};
+
 interface ChainInfo {
   id: number | string;
   name: string;

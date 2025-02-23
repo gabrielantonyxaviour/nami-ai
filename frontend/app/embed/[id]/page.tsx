@@ -42,7 +42,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   return (
     <div style={{ width: "100%", height: "100%", backgroundColor: "#000" }}>
       <iframe
-        src={`/donate/${params.id}`}
+        src={`/donate/${params.id}/embed`}
         style={{
           width: "100%",
           height: "100%",
