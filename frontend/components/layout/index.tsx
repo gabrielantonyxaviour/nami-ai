@@ -5,13 +5,23 @@ import { useState } from "react";
 import ToggleTheme from "../ui/custom/toggle-theme";
 import Link from "next/link";
 import { buttonVariants } from "../ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  return !loading ? (
+  const router = useRouter();
+  const pathname = usePathname();
+  const pathParts = pathname?.split("/");
+
+  console.log(pathParts);
+
+  return (pathParts.length > 1 && pathParts[1] == "embed") ||
+    (pathParts.length > 3 && pathParts[3] == "embed") ? (
+    <div className="h-screen flex flex-col w-screen select-text bg-[#FFFCF8]">
+      {children}
+    </div>
+  ) : !loading ? (
     <div className="h-screen flex flex-col w-screen select-text bg-[#FFFCF8]">
       <div className="flex justify-between p-4">
         <div

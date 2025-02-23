@@ -37,16 +37,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function Donate({ id }: { id: string }) {
-  const disaster = disasters.find((disaster) => disaster.id === parseInt(id));
+export default function Donate({
+  params,
+}: {
+  params: {
+    id: string;
+  };
+}) {
+  const disaster = disasters.find(
+    (disaster) => disaster.id === parseInt(params.id)
+  );
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
   const { address, chainId } = useAccount();
   const [selectedChainId, setSelectedChainId] = useState<number>(0);
   const [openBasePayModal, setOpenBasePayModal] = useState(false);
   const [apply, setApply] = useState(false);
+  const searchParams = useSearchParams();
   const [openEvmPayModal, setOpenEvmPayModal] = useState(false);
-  const params = useSearchParams();
   const [donateFundsAmount, setDonateFundsAmount] = useState("0");
   const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
@@ -62,6 +70,11 @@ export default function Donate({ id }: { id: string }) {
     {}
   );
   const [txHash, setTxHash] = useState<string>("");
+
+  useEffect(() => {
+    console.log(disaster);
+    console.log(params.id);
+  }, []);
 
   // Add this useEffect to fetch balances when chain or address changes
   useEffect(() => {
@@ -106,8 +119,8 @@ export default function Donate({ id }: { id: string }) {
 
   // Update the Select component
   useEffect(() => {
-    const applyParam = params.get("apply")
-      ? JSON.parse(params.get("apply") as string)
+    const applyParam = searchParams.get("apply")
+      ? JSON.parse(searchParams.get("apply") as string)
       : false;
     setApply(applyParam);
   }, [params]);
