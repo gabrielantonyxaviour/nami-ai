@@ -79,16 +79,8 @@ export class SearchService extends BaseService {
         if (response) {
           console.log("No disasters to post");
         } else {
-          console.log("Disaster to post");
-          console.log("Title: ", title);
-          console.log("Location: ", location);
-          console.log("Description: ", description);
-          console.log("Source URL: ", source_url);
-          console.log("Funds Needed: ", funds_needed);
-          console.log("Type: ", type);
-
           // Upload JSON to IPFS
-
+          console.log("Preparing JSON data for IPFS upload...");
           const jsonData = {
             title: title || "Disaster",
             description: description || "A very bad thing happened",
@@ -100,9 +92,11 @@ export class SearchService extends BaseService {
             created_at: new Date().toISOString(),
           };
 
+          console.log("Uploading JSON to IPFS...");
           const ipfsUrl = await uploadJSONToPinata(jsonData);
+          console.log("IPFS URL:", ipfsUrl);
 
-          // Send Tx
+          console.log("Setting up StarkNet provider and account...");
           const provider = new RpcProvider({
             nodeUrl: `https://starknet-sepolia.public.blastapi.io`,
           });
@@ -113,41 +107,52 @@ export class SearchService extends BaseService {
             undefined,
             constants.TRANSACTION_VERSION.V3
           );
+
           const namiAddress =
             "0x04cf129a9a73e2b0854d21efc34f9d1a81fb7b4de9079a1eb74890a0892dc079";
           const { abi: namiAbi } = await provider.getClassAt(namiAddress);
 
           if (namiAbi === undefined) {
-            throw new Error("no abi.");
+            throw new Error("No ABI found for Nami contract.");
           }
-          console.log("Q");
 
+          console.log("Connecting to Nami contract...");
           const namiContract = new Contract(namiAbi, namiAddress, provider);
           namiContract.connect(aiAgentAccount);
 
+          console.log("Populating create_disaster transaction...");
           const createDisasterTx = namiContract.populate("create_disaster", [
             BigInt(funds_needed || "1000") * BigInt(10 ** 6),
             ethers.getBytes(ipfsUrl),
           ]);
+
+          console.log("Sending create_disaster transaction...");
           const res = await namiContract.create_disaster(
             createDisasterTx.calldata
           );
+
+          console.log("Waiting for transaction confirmation...");
           const txResponse = await provider.waitForTransaction(
             res.transaction_hash
           );
+
           if (txResponse.isSuccess()) {
+            console.log("Transaction successful!");
             const events = txResponse.events;
             const disasterId = Number(events[0].data[0]);
 
             const donationUrl =
               "https://stark-nami-ai.vercel.app/embed/" + disasterId;
-            // Tweet on X
+            console.log("Donation URL:", donationUrl);
+
+            console.log("Tweeting donation URL...");
             const tweet = await scraper.sendTweet(donationUrl);
             const tweetResponse: any = await tweet.json();
 
             const tweetUrl = `https://twitter.com/NamiAIStarknet/status/${tweetResponse.data.create_tweet.tweet_results.result.rest_id}`;
-            //  Save to Supabase
+            console.log("Tweet URL:", tweetUrl);
 
+            console.log("Saving disaster to Supabase...");
             await supabaseService.createDisaster({
               title: title || "Disaster",
               description: description || "A very bad thing happened",
@@ -159,14 +164,14 @@ export class SearchService extends BaseService {
               tweet_url: tweetUrl,
               funds_raised: "0",
             });
+          } else {
+            console.error("Transaction failed:", txResponse);
           }
         }
-
         console.log("Waiting for 1 hour...");
         await new Promise((resolve) => setTimeout(resolve, 60 * 60 * 1000));
       }
     };
-
     generateSearchDisasterLoop();
   }
   private async collectReliefWeb() {
