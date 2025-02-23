@@ -14,7 +14,6 @@ import DonateHero from "./hero";
 import DonateBody from "./body";
 import DonationTable from "./donations-table";
 
-import SwapModal from "./swap-modal";
 import { gql } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 
@@ -58,22 +57,6 @@ export default function Donate({ id }: { id: string }) {
         <DonateBody disaster={disaster} />
         <DonationTable apply={apply} />
       </div>
-
-      <div className="fixed bottom-6 left-6 w-[40px] h-[40px] rounded-full overflow-hidden shadow-lg cursor-pointer hover:scale-110 transition duration-200">
-        <Image
-          src="/coinbase.png" // Replace with your image path
-          alt="Floating Image"
-          width={40} // Adjust as needed
-          height={40} // Adjust as needed
-          onClick={() => {
-            setShowSwapModalPopover(true);
-          }}
-        />
-      </div>
-      <SwapModal
-        open={showSwapModalPopover}
-        setOpen={setShowSwapModalPopover}
-      />
     </div>
   ) : (
     <div className="flex flex-col items-center justify-center h-screen w-screen space-y-4">
