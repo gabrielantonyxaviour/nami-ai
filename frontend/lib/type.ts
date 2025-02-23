@@ -1,36 +1,43 @@
-import { Address } from "viem";
-
-export interface KYCViewerInfo {
-  isIndividual: boolean;
-  isCorporate: boolean;
-  isKYC: boolean;
-  isSanctionsSafe: boolean;
-  getCountry: string;
-  getWalletOwners: Address[];
+interface Disaster {
+  id: number;
+  created_at: string;
+  title: string | null;
+  description: string | null;
+  funds_needed: number | null;
+  sources: string[] | null;
+  location: string | null;
+  tweet_url: string | null;
+  type: string | null;
+  funds_raised: number | null;
 }
 
-export type Token = {
-  address: Address; // The address of the token contract
-  chainId: number; // The chain id of the token contract
-  decimals: number; // The number of token decimals
-  image: string | null; // A string url of the token logo
-  name: string;
-  symbol: string; // A ticker symbol or shorthand, up to 11 characters
-};
-
-export type Disaster = {
+interface NGO {
   id: number;
-  title: string;
-  images: string[];
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  description: string;
-  attestationId: string;
-  createdAt: string;
-  totalRaisedInUSD: number;
-  requiredFundsInUSD: number;
-  vaultAddress: string;
-  subName: string;
-};
+  created_at: string;
+  name: string | null;
+  image: string | null;
+  description: string | null;
+  location: string | null;
+}
+
+interface StarkDonation {
+  id: number;
+  donated_at: string;
+  disaster_id: number | null;
+  chain: number | null;
+  token: string | null;
+  amount: number | null;
+  usd_amount: number | null;
+}
+
+interface StarkClaim {
+  id: number;
+  claimed_at: string;
+  ngo: number | null;
+  disaster: number | null;
+  amount: number | null;
+  tweet_url: string | null;
+  ngo_details?: NGO;
+}
+
+export type { Disaster, NGO, StarkDonation, StarkClaim };
