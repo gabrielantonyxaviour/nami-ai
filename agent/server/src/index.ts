@@ -15,7 +15,7 @@ import { ElizaService } from "./services/eliza.service.js";
 import { NgrokService } from "./services/ngrok.service.js";
 import { SupabaseService } from "./services/supabase.service.js";
 // import { LitService } from "./services/lit.service.js";
-import { SearchService } from "./services/search.service.js";
+// import { SearchService } from "./services/search.service.js";
 import { TwitterService } from "./services/twitter.service.js";
 
 // Convert ESM module URL to filesystem path
@@ -86,17 +86,18 @@ app.listen(port, async () => {
     console.log(`Server running on PORT: ${port}`);
     console.log("Server Environment:", process.env.NODE_ENV);
 
+    await twitterService.start();
     await elizaService.start();
     await supabaseService.start();
-    await twitterService.start();
 
-    const searchService = SearchService.getInstance();
-    await searchService.start();
+    // const searchService = SearchService.getInstance();
+    // await searchService.start();
 
-    services.push(searchService);
+    // services.push(searchService);
     services.push(elizaService);
     services.push(supabaseService);
     services.push(twitterService);
+    // services.push(searchService);
 
     if (process.env.NODE_ENV == "dev") {
       const ngrokService = NgrokService.getInstance();
@@ -109,7 +110,6 @@ app.listen(port, async () => {
     console.log(
       "Eliza service and ready to interact at /chat with a verified Telegram Auth JWT Token"
     );
-    console.log("Supabase service listening for any new trade data");
   } catch (e) {
     console.error("Failed to start server:", e);
     process.exit(1);

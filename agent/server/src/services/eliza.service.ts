@@ -205,13 +205,11 @@ export class MessageManager {
     disasters,
     tweets,
     postedDisasters,
-    searchEngineDisasters,
   }: {
     earthquakes: any[];
     disasters: any[];
     tweets: any[];
     postedDisasters: any[];
-    searchEngineDisasters: any[];
   }): Promise<ValidationResponse> {
     const context = composeContext({
       state: {

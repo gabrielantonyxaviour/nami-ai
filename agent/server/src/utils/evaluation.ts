@@ -131,3 +131,43 @@ export async function groupRelatedArticles(
 
 //     return response.data.items || [];
 // }
+interface NGO {
+  id: number;
+  name: string;
+  location: string;
+  description: string;
+}
+
+interface Disaster {
+  id: number;
+  title: string;
+  description: string;
+  location: string;
+  type: string;
+}
+
+export function generateNGOActivityQuery(ngo: NGO, disaster: Disaster): string {
+  // Clean and prepare the search terms
+  const ngoName = `"${ngo.name.trim()}"`;
+  const disasterLocation = disaster.location.trim();
+  const disasterType = disaster.type.trim();
+
+  // Activity and relief terms that indicate NGO involvement
+  const activityTerms = [
+    "aid",
+    "relief",
+    "assistance",
+    "helped",
+    "donated",
+    "supported",
+    "deployed",
+    "distributed",
+    "response",
+    "helping",
+  ];
+
+  // Construct the core query
+  const query = `${ngoName} AND "${disasterLocation}" AND "${disasterType}" AND (${activityTerms.join(" OR ")}) site:reliefweb.int OR site:devex.com OR site:unocha.org`;
+
+  return query;
+}

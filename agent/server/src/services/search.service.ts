@@ -5,7 +5,7 @@ import { SupabaseService } from "./supabase.service.js";
 import { TwitterService } from "./twitter.service.js";
 import axios from "axios";
 import { RpcProvider, Contract, Account, constants } from "starknet";
-import uploadJSONToPinata from "src/utils/pinata.js";
+import uploadJSONToPinata from "../utils/pinata.js";
 import { ethers } from "ethers";
 export class SearchService extends BaseService {
   private static instance: SearchService;
@@ -78,7 +78,7 @@ export class SearchService extends BaseService {
           disasters,
           tweets: tweets.tweets,
           postedDisasters,
-          searchEngineDisasters,
+          // searchEngineDisasters,
         });
 
         if (response) {

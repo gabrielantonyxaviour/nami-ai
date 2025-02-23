@@ -97,6 +97,36 @@ export class SupabaseService extends BaseService {
     return [];
   }
 
+  public async getDisasterById(id: string): Promise<any> {
+    if (this.supabase) {
+      const { data, error } = await this.supabase
+        .from("nami_disasters")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) {
+        console.error(error);
+      }
+      return data;
+    }
+    return null;
+  }
+
+  public async getNgoById(id: string): Promise<any> {
+    if (this.supabase) {
+      const { data, error } = await this.supabase
+        .from("nami_ngos")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) {
+        console.error(error);
+      }
+      return data;
+    }
+    return null;
+  }
+
   private async listenForLargeDonations(
     elizaService: ElizaService,
     scraper: Scraper
