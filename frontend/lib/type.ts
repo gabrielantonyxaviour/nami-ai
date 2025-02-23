@@ -40,4 +40,21 @@ interface StarkClaim {
   ngo_details?: NGO;
 }
 
-export type { Disaster, NGO, StarkDonation, StarkClaim };
+interface HardcodedDisaster {
+  id: number;
+  title: string;
+  images: string[];
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  description: string;
+  attestationId: string;
+  createdAt: string;
+  totalRaisedInUSD: number;
+  requiredFundsInUSD: number;
+  vaultAddress: string;
+  subName: string;
+}
+
+export type { Disaster, NGO, StarkDonation, StarkClaim, HardcodedDisaster };

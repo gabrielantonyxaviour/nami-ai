@@ -16,6 +16,7 @@ import {
   scrollSepolia,
   sepolia,
 } from "viem/chains";
+import { HardcodedDisaster } from "./type";
 
 export const idToChain: Record<number, Chain> = {
   [baseSepolia.id]: baseSepolia,
@@ -1433,24 +1434,7 @@ export const mapsStyle = [
   },
 ];
 
-interface HardcodeDisaster {
-  id: number;
-  title: string;
-  images: string[];
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  description: string;
-  attestationId: string;
-  createdAt: string;
-  totalRaisedInUSD: number;
-  requiredFundsInUSD: number;
-  vaultAddress: string;
-  subName: string;
-}
-
-export const disasters: HardcodeDisaster[] = [
+export const disasters: HardcodedDisaster[] = [
   {
     id: 1,
     title: "Floods in Thailand",
