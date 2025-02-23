@@ -5,6 +5,8 @@ import { SupabaseService } from "./supabase.service.js";
 import { TwitterService } from "./twitter.service.js";
 import axios from "axios";
 import { RpcProvider, Contract, Account, constants } from "starknet";
+import uploadJSONToPinata from "src/utils/pinata.js";
+import { ethers } from "ethers";
 export class SearchService extends BaseService {
   private static instance: SearchService;
 
@@ -85,6 +87,21 @@ export class SearchService extends BaseService {
           console.log("Funds Needed: ", funds_needed);
           console.log("Type: ", type);
 
+          // Upload JSON to IPFS
+
+          const jsonData = {
+            title: title || "Disaster",
+            description: description || "A very bad thing happened",
+            funds_needed: funds_needed || "1000",
+            type: type || "natural disaster",
+            sources: source_url ? [source_url] : [],
+            images: [],
+            location: location || "Earth",
+            created_at: new Date().toISOString(),
+          };
+
+          const ipfsUrl = await uploadJSONToPinata(jsonData);
+
           // Send Tx
           const provider = new RpcProvider({
             nodeUrl: `https://starknet-sepolia.public.blastapi.io`,
@@ -110,7 +127,7 @@ export class SearchService extends BaseService {
 
           const createDisasterTx = namiContract.populate("create_disaster", [
             BigInt(funds_needed || "1000") * BigInt(10 ** 6),
-            "hello", // TODO: Send IPFS hash as a ByteArray
+            ethers.getBytes(ipfsUrl),
           ]);
           const res = await namiContract.create_disaster(
             createDisasterTx.calldata

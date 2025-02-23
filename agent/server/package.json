@@ -51,6 +51,7 @@
     "localtunnel": "^2.0.2",
     "node-cache": "^5.1.2",
     "openai": "^4.85.1",
+    "pinata": "^1.10.1",
     "prettier": "^3.4.2",
     "starknet": "^6.23.1",
     "tsc-watch": "^6.2.1",
