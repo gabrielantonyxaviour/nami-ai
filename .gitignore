@@ -2,5 +2,4 @@
 cdp_api_keys.json
 wallet.json
 package-lock.json
-
-
+node_modules

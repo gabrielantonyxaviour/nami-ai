@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.11.10",
+    "@coinbase/agentkit": "^0.2.2",
     "@coinbase/onchainkit": "^0.35.5",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-context-menu": "^2.2.2",
@@ -35,8 +36,10 @@
     "@tsparticles/engine": "^3.5.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.5.0",
+    "ai": "^4.1.45",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.39.3",
     "embla-carousel-autoplay": "^8.3.0",
     "embla-carousel-react": "^8.3.0",
     "ethers": "^6.11.1",
@@ -48,6 +51,7 @@
     "next-auth": "^4.24.8",
     "next-themes": "^0.3.0",
     "pinata": "^1.7.2",
+    "postgres": "^3.4.5",
     "prism-react-renderer": "^2.4.0",
     "prop-types": "^15.8.1",
     "react": "^18",
@@ -60,6 +64,7 @@
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.21.19",
     "wagmi": "^2.12.29",
+    "zod": "^3.24.2",
     "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
