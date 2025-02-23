@@ -44,17 +44,19 @@ async function collectUSGS() {
     const response = await axios.get(
       "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
     );
-    return response.data.features.map((quake) => ({
-      source: "USGS",
-      title: `M${quake.properties.mag} - ${quake.properties.place}`,
-      description: quake.properties.title,
-      location: {
-        lat: quake.geometry.coordinates[1],
-        lng: quake.geometry.coordinates[0],
-      },
-      timestamp: new Date(quake.properties.time).toISOString(),
-      type: "earthquake",
-    }));
+    return response.data.features
+      .filter((quake) => quake.properties.mag > 5.5)
+      .map((quake) => ({
+        source: "USGS",
+        title: `${quake.properties.title}`,
+        magnitude: quake.properties.mag,
+        location: {
+          lat: quake.geometry.coordinates[1],
+          lng: quake.geometry.coordinates[0],
+        },
+        timestamp: new Date(quake.properties.time).toISOString(),
+        type: "earthquake",
+      }));
   } catch (error) {
     console.error("USGS Error:", error.message);
     return [];
@@ -137,3 +139,13 @@ app.get("/api/disasters", async (req, res) => {
 });
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
+// TODO: use google engine
+
+// TODO: use twitter browsing
+
+// TODO: Validate with AI
+
+// TODO: Send Tx
+
+// TODO: Send tweet

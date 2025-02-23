@@ -76,7 +76,7 @@
     "location": "Syrian Arab Republic",
     "type": "Wild Fire",
     "timestamp": "2024-11-25T10:21:10.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -85,7 +85,7 @@
     "location": "Dominican Republic",
     "type": "Flash Flood",
     "timestamp": "2024-11-25T07:09:36.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -112,7 +112,7 @@
     "location": "Costa Rica",
     "type": "Flood",
     "timestamp": "2024-11-18T10:17:41.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -130,7 +130,7 @@
     "location": "Haiti",
     "type": "Flood",
     "timestamp": "2024-11-16T01:18:19.000Z",
-    "status": "alert"
+    "status": "ongoing"
   },
   {
     "source": "ReliefWeb",
@@ -139,7 +139,7 @@
     "location": "Belize",
     "type": "Tropical Cyclone",
     "timestamp": "2024-11-15T16:53:23.000Z",
-    "status": "alert"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -148,7 +148,7 @@
     "location": "Panama",
     "type": "Flood",
     "timestamp": "2024-11-15T04:05:09.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -157,7 +157,7 @@
     "location": "Burundi",
     "type": "Epidemic",
     "timestamp": "2024-11-08T08:01:10.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "USGS",
@@ -2168,7 +2168,7 @@
     "location": "Algeria",
     "type": "Epidemic",
     "timestamp": "2024-11-07T07:07:24.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2177,7 +2177,7 @@
     "location": "Cuba",
     "type": "Tropical Cyclone",
     "timestamp": "2024-11-05T23:18:21.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2195,7 +2195,7 @@
     "location": "Senegal",
     "type": "Flood",
     "timestamp": "2024-10-29T06:58:33.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2222,7 +2222,7 @@
     "location": "Bahamas",
     "type": "Tropical Cyclone",
     "timestamp": "2024-10-22T14:13:55.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2231,7 +2231,7 @@
     "location": "Sri Lanka",
     "type": "Flash Flood",
     "timestamp": "2024-10-16T01:12:08.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2258,7 +2258,7 @@
     "location": "Sierra Leone",
     "type": "Flood",
     "timestamp": "2024-10-08T14:14:01.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2276,7 +2276,7 @@
     "location": "Nepal",
     "type": "Flood",
     "timestamp": "2024-09-30T13:23:53.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2285,7 +2285,7 @@
     "location": "Bosnia and Herzegovina",
     "type": "Flood",
     "timestamp": "2024-09-27T01:25:10.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2294,7 +2294,7 @@
     "location": "Kenya",
     "type": "Epidemic",
     "timestamp": "2024-09-27T01:19:57.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2303,7 +2303,7 @@
     "location": "Algeria",
     "type": "Flood",
     "timestamp": "2024-09-24T02:43:03.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2321,7 +2321,7 @@
     "location": "Central African Republic",
     "type": "Flood",
     "timestamp": "2024-09-09T13:14:31.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2384,7 +2384,7 @@
     "location": "Guinea",
     "type": "Flood",
     "timestamp": "2024-08-19T00:44:10.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -2420,7 +2420,7 @@
     "location": "Bolivia (Plurinational State of)",
     "type": "Wild Fire",
     "timestamp": "2024-07-31T07:12:14.000Z",
-    "status": "ongoing"
+    "status": "past"
   },
   {
     "source": "ReliefWeb",
@@ -3970,5 +3970,125 @@
     "timestamp": "2024-11-30T01:11:09.000Z",
     "type": "social",
     "author_id": "22709719"
+  },
+  {
+    "source": "USGS",
+    "title": "M 5.6 - 127 km WNW of Gizo, Solomon Islands",
+    "magnitude": 5.6,
+    "description": "M 5.6 - 127 km WNW of Gizo, Solomon Islands",
+    "location": {
+      "lat": -7.4843,
+      "lng": 155.8628
+    },
+    "timestamp": "2025-02-23T01:31:54.765Z",
+    "type": "earthquake"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Uganda: Ebola Outbreak - Jan 2025",
+    "description": "Uganda: Ebola Outbreak - Jan 2025",
+    "location": "Uganda",
+    "type": "Epidemic",
+    "timestamp": "2025-01-31T13:54:57.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Tanzania: Marburg Virus Disease Outbreak - Jan 2025",
+    "description": "Tanzania: Marburg Virus Disease Outbreak - Jan 2025",
+    "location": "United Republic of Tanzania",
+    "type": "Epidemic",
+    "timestamp": "2025-01-21T02:02:21.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Ghana: Cholera Outbreak - Oct 2024",
+    "description": "Ghana: Cholera Outbreak - Oct 2024",
+    "location": "Ghana",
+    "type": "Epidemic",
+    "timestamp": "2025-01-19T13:56:37.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Gabon: Floods - Nov 2024",
+    "description": "Gabon: Floods - Nov 2024",
+    "location": "Gabon",
+    "type": "Flood",
+    "timestamp": "2025-01-15T00:47:32.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Tropical Cyclone Dikeledi - Jan 2025",
+    "description": "Tropical Cyclone Dikeledi - Jan 2025",
+    "location": "Comoros",
+    "type": "Tropical Cyclone",
+    "timestamp": "2025-01-12T04:50:29.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Angola: Cholera Outbreak - Jan 2025",
+    "description": "Angola: Cholera Outbreak - Jan 2025",
+    "location": "Angola",
+    "type": "Epidemic",
+    "timestamp": "2025-01-10T12:00:13.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Ethiopia: Earthquakes - Jan 2025",
+    "description": "Ethiopia: Earthquakes - Jan 2025",
+    "location": "Ethiopia",
+    "type": "Earthquake",
+    "timestamp": "2025-01-08T10:48:28.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Vanuatu: Earthquake - Dec 2024",
+    "description": "Vanuatu: Earthquake - Dec 2024",
+    "location": "Vanuatu",
+    "type": "Earthquake",
+    "timestamp": "2024-12-17T11:21:48.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Tropical Cyclone Chido - Dec 2024",
+    "description": "Tropical Cyclone Chido - Dec 2024",
+    "location": "Comoros",
+    "type": "Tropical Cyclone",
+    "timestamp": "2024-12-13T15:17:56.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Libya: Floods - Dec 2024",
+    "description": "Libya: Floods - Dec 2024",
+    "location": "Libya",
+    "type": "Flood",
+    "timestamp": "2024-12-11T11:21:07.000Z",
+    "status": "past"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Tropical Cyclone Fengal - Nov 2024",
+    "description": "Tropical Cyclone Fengal - Nov 2024",
+    "location": "India",
+    "type": "Tropical Cyclone",
+    "timestamp": "2024-12-09T19:35:19.000Z",
+    "status": "ongoing"
+  },
+  {
+    "source": "ReliefWeb",
+    "title": "Malaysia: Floods - Nov 2024",
+    "description": "Malaysia: Floods - Nov 2024",
+    "location": "Malaysia",
+    "type": "Flash Flood",
+    "timestamp": "2024-12-09T15:15:53.000Z",
+    "status": "ongoing"
   }
 ]

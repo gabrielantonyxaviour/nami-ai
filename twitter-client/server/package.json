@@ -36,7 +36,7 @@
     "@types/localtunnel": "^2.0.4",
     "@useorbis/db-sdk": "0.0.60-alpha",
     "agent-twitter-client": "^0.0.18",
-    "axios": "^1.7.7",
+    "axios": "^1.7.9",
     "better-sqlite3": "^11.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

@@ -12,7 +12,9 @@ import { isHttpError } from "http-errors";
 import { ElizaService } from "./services/eliza.service.js";
 import { NgrokService } from "./services/ngrok.service.js";
 import { SupabaseService } from "./services/supabase.service.js";
-import { LitService } from "./services/lit.service.js";
+// import { LitService } from "./services/lit.service.js";
+import { SearchService } from "./services/search.service.js";
+import { TwitterService } from "./services/twitter.service.js";
 
 // Convert ESM module URL to filesystem path
 const __filename = fileURLToPath(import.meta.url);
@@ -37,15 +39,16 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-const elizaService = ElizaService.getInstance()
-const supabaseService = SupabaseService.getInstance()
+const elizaService = ElizaService.getInstance();
+const supabaseService = SupabaseService.getInstance();
+const twitterService = TwitterService.getInstance();
 
-app.use('/chat', chatRouter)
+app.use("/chat", chatRouter);
 
 app.use((req, _res, next) => {
-  console.log('Request URL:', req.originalUrl);
-  console.log('Request Method:', req.method);
-  console.log('Request Body:', JSON.stringify(req.body, null, 2));
+  console.log("Request URL:", req.originalUrl);
+  console.log("Request Method:", req.method);
+  console.log("Request Body:", JSON.stringify(req.body, null, 2));
 
   next();
 });
@@ -80,11 +83,16 @@ app.listen(port, async () => {
     console.log("Server Environment:", process.env.NODE_ENV);
 
     await elizaService.start();
-    await supabaseService.start()
-    const litService = await LitService.getInstance()
+    await supabaseService.start();
+    await twitterService.start();
+
+    const searchService = SearchService.getInstance();
+    await searchService.start();
+
+    services.push(searchService);
     services.push(elizaService);
     services.push(supabaseService);
-    services.push(litService);
+    services.push(twitterService);
 
     if (process.env.NODE_ENV == "dev") {
       const ngrokService = NgrokService.getInstance();
@@ -94,7 +102,9 @@ app.listen(port, async () => {
       services.push(ngrokService);
     }
 
-    console.log("Eliza service and ready to interact at /chat with a verified Telegram Auth JWT Token");
+    console.log(
+      "Eliza service and ready to interact at /chat with a verified Telegram Auth JWT Token"
+    );
     console.log("Supabase service listening for any new trade data");
   } catch (e) {
     console.error("Failed to start server:", e);

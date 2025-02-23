@@ -44,7 +44,7 @@ export class TwitterService extends BaseService {
       const cookieJson = await fs.readFile(twitterCookiesPath, "utf-8");
       const cookiesJSON = JSON.parse(cookieJson);
       this.scraper = new Scraper();
-      await this.scraper.setCookies(cookiesJSON.cookies);
+      await this.setCookiesFromArray(cookiesJSON.cookies);
       console.log("[TwitterService] Starting service with existing cookies...");
       const connected = await this.scraper.isLoggedIn();
       if (!connected) {
@@ -52,12 +52,30 @@ export class TwitterService extends BaseService {
       }
       this.me = await this.scraper.me();
       this.isConnected = true;
+
+      // TODO: Interact with the Home Timeline
+
+      // TODO: Interact with the Interactions
+
+      // TODO: Generate your own posts
     } catch (error) {
       console.error("[TwitterService] Error:", error);
       throw new Error(
         "Twitter cookies not found. Please run the `pnpm letsgo` script first."
       );
     }
+  }
+  private async setCookiesFromArray(cookiesArray: any[]) {
+    if (!this.scraper) return;
+    const cookieStrings = cookiesArray.map(
+      (cookie) =>
+        `${cookie.key}=${cookie.value}; Domain=${cookie.domain}; Path=${
+          cookie.path
+        }; ${cookie.secure ? "Secure" : ""}; ${
+          cookie.httpOnly ? "HttpOnly" : ""
+        }; SameSite=${cookie.sameSite || "Lax"}`
+    );
+    await this.scraper.setCookies(cookieStrings);
   }
 
   public async stop(): Promise<void> {

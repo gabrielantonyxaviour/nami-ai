@@ -17,7 +17,6 @@ import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
-
 import { composeContext } from "@ai16z/eliza";
 import {
   Content,
@@ -30,10 +29,13 @@ import {
 } from "@ai16z/eliza";
 import { stringToUuid } from "@ai16z/eliza";
 import OpenAI from "openai";
-import { messageCompletionFooter, } from "@ai16z/eliza";
+import { messageCompletionFooter } from "@ai16z/eliza";
 import { SqliteDatabaseAdapter } from "@ai16z/adapter-sqlite";
 import Database from "better-sqlite3";
 import { ExecutedTrade, TradePlay } from "../types.js";
+
+const handleDisasterValidationFooter =
+  '\nIf Disaster is present, response format should be formatted in a JSON block like this:\n```json\n{ "title": "string", "location": "string", "description": "string", "source_url": "string", "funds_needed": "string" }\n```';
 
 const messageHandlerTemplate =
   `About {{agentName}}:
@@ -54,12 +56,32 @@ const messageHandlerTemplate =
 
 ` + messageCompletionFooter;
 
+const handleDisasterValidationTemplate =
+  `Here is a list of collected information about recent disasters and earthquakes around the world:
+
+  "Earthquakes information from USGS API: {{earthquakes}}"
+{{earthquakes}}
+
+  "Disasters information from ReliefWeb API: {{disasters}}"
+{{disasters}}
+
+  "Tweets information from Twitter API: {{tweets}}"
+{{tweets}}
+
+  "Latest Disasters that are already posted. SHOULD NOT BE included again"
+{{latestDisasters}}
+
+Your job is to find the most serious disaster (if present) and return its data as a response along with an estimated funds needed to recover from the disaster. Estimate anywhere around $1k to $100k based on the severity of the disaster. Earthquakes that have more 5.5 magnitude have some effect but not as much as a disaster. Floods, wildfires, and other natural disasters are serious too. Twitter data can sometimes be out of context and give posts unrelated to disasters.
+If there are no serious disasters, return "No serious disasters found" as a response.\n
+
+  ` + handleDisasterValidationFooter;
+
 type Context = {
   conversationId?: UUID;
   play?: TradePlay;
   trade?: ExecutedTrade;
   message: { id: string; text: string; replyToMessageId?: UUID };
-}
+};
 
 export class MessageManager {
   private runtime: IAgentRuntime;
@@ -68,9 +90,9 @@ export class MessageManager {
   constructor(runtime: IAgentRuntime) {
     this.runtime = runtime;
     this.openai = new OpenAI({
-      apiKey: process.env.VENICE_AI_API_KEY || "",
-      baseURL: "https://api.venice.ai/api/v1"
-    })
+      apiKey: process.env.GAIANET_API_KEY || "",
+      baseURL: "https://qwen7b.gaia.domains",
+    });
   }
 
   // Generate a response using AI
@@ -81,27 +103,30 @@ export class MessageManager {
   ): Promise<Content | null> {
     const { userId, roomId } = message;
     elizaLogger.debug("[_generateResponse] check1");
-    elizaLogger.debug("Initializing VeniceAI model.");
+    elizaLogger.debug("Initializing EternalAI model.");
 
     const completion = await this.openai.chat.completions.create({
-      messages: [{
-        role: "system",
-        content: context
-      }],
-      model: "llama-3.3-70b"
-    })
+      messages: [
+        {
+          role: "system",
+          content: context,
+        },
+      ],
+      model: "qwen-2.5-coder-0.5b",
+    });
 
-    elizaLogger.debug("COMPLETION  RESPONES")
-    elizaLogger.debug("Received response from VeniceAI model.");
+    elizaLogger.debug("COMPLETION  RESPONES");
+    elizaLogger.debug("Received response from EternalAI model.");
 
-    const messageContent = JSON.parse(completion as any).choices[0].message.content;
+    const messageContent = JSON.parse(completion as any).choices[0].message
+      .content;
     if (!messageContent) {
       console.error("❌ No response from generateMessageResponse");
       return null;
     }
     const response = {
-      text: messageContent as string
-    }
+      text: messageContent as string,
+    };
     elizaLogger.debug("[_generateResponse] check2");
 
     elizaLogger.debug("[_generateResponse] check3");
@@ -117,15 +142,128 @@ export class MessageManager {
     return response;
   }
 
+  public async handleDisasterValidation({
+    earthquakes,
+    disasters,
+    tweets,
+    latestDisasters,
+  }: {
+    earthquakes: any[];
+    disasters: any[];
+    tweets: any[];
+    latestDisasters: any[];
+  }): Promise<void> {
+    const context = composeContext({
+      state: {
+        earthquakes: earthquakes
+          .map(
+            (quake: any) =>
+              `Title: ${quake.title}
+    Magnitude: ${quake.magnitude}
+    Location: ${quake.location}
+    Timestamp: ${quake.timestamp}
+    Type: ${quake.type}
+    `
+          )
+          .join("\n"),
+
+        disasters: disasters
+          .map(
+            (disaster: any) =>
+              `Title: ${disaster.title}
+    Description: ${disaster.description}
+    Location: ${disaster.location}
+    Type: ${disaster.type}
+    Timestamp: ${disaster.timestamp}
+    Status: ${disaster.status}
+    `
+          )
+          .join("\n"),
+
+        tweets: tweets
+          .map(
+            (tweet: any) =>
+              `Tweet: ${tweet.text}
+    Timestamp: ${tweet.timestamp}
+    User: ${tweet.user}
+    `
+          )
+          .join("\n"),
+
+        latestDisasters:
+          latestDisasters.length == 0
+            ? "No disasters posted yet."
+            : latestDisasters
+                .map(
+                  (disaster: any) =>
+                    `Title: ${disaster.title}
+    Description: ${disaster.description}
+    Location: ${disaster.location}
+    Type: ${disaster.type}
+    Timestamp: ${disaster.timestamp}
+    Status: ${disaster.status}
+    `
+                )
+                .join("\n"),
+      } as any,
+      template: handleDisasterValidationTemplate,
+    });
+
+    console.log(context);
+
+    const completion = await this.openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: context,
+        },
+      ],
+      model: "qwen-2.5-coder-0.5b",
+    });
+
+    elizaLogger.debug("COMPLETION  RESPONES");
+    elizaLogger.debug("Received response from EternalAI model.");
+    console.log(completion);
+    const messageContent = JSON.parse(completion as any).choices[0].message
+      .content;
+    if (!messageContent) {
+      console.error("❌ No response from generateMessageResponse");
+      return;
+    }
+    // const response = {
+    //   text: messageContent as string,
+    // };
+    console.log(messageContent);
+    elizaLogger.debug("[_generateResponse] check2");
+
+    elizaLogger.debug("[_generateResponse] check3");
+    // store the response in the database
+
+    // await this.runtime.databaseAdapter.log({
+    //   body: { message, context, response },
+    //   userId,
+    //   roomId,
+    //   type: "response",
+    // });
+  }
+
+  public async handleNGOValidation() {}
+
   // Main handler for incoming messages
-  public async handleMessage(ctx: Context): Promise<{
-    converstationId: UUID;
-    response: string;
-  } | undefined> {
+  public async handleMessage(ctx: Context): Promise<
+    | {
+        converstationId: UUID;
+        response: string;
+      }
+    | undefined
+  > {
     const message = ctx.message;
     let conversationId: UUID;
     if (ctx.conversationId) conversationId = ctx.conversationId;
-    else conversationId = stringToUuid((Math.floor(Math.random() * 100000000000000) + 1).toString());
+    else
+      conversationId = stringToUuid(
+        (Math.floor(Math.random() * 100000000000000) + 1).toString()
+      );
 
     try {
       // Convert IDs to UUIDs
@@ -143,20 +281,16 @@ export class MessageManager {
         "direct"
       );
 
-      const messageId = stringToUuid(
-        message.id
-      ) as UUID;
-
+      const messageId = stringToUuid(message.id) as UUID;
 
       const content: Content = {
         text: message.text,
         source: "direct",
-        inReplyTo:
-          message.replyToMessageId
-            ? message.replyToMessageId
-            : undefined,
+        inReplyTo: message.replyToMessageId
+          ? message.replyToMessageId
+          : undefined,
       };
-      const createdAt = new Date().getTime()
+      const createdAt = new Date().getTime();
       const memory = {
         id: messageId,
         agentId,
@@ -168,8 +302,13 @@ export class MessageManager {
       await this.runtime.messageManager.createMemory(memory, true);
 
       let state = await this.runtime.composeState(memory, {
-        formattedPlay: ctx.play ? "Speculated Trade Play Details: \n" + JSON.stringify(ctx.play, null, 2) : "",
-        formattedTrade: ctx.trade ? "Executed Trade Details: \n" + JSON.stringify(ctx.trade, null, 2) : "",
+        formattedPlay: ctx.play
+          ? "Speculated Trade Play Details: \n" +
+            JSON.stringify(ctx.play, null, 2)
+          : "Speculated Trade Play Details: \n",
+        formattedTrade: ctx.trade
+          ? "Executed Trade Details: \n" + JSON.stringify(ctx.trade, null, 2)
+          : "Executed Trade Details: \n",
       });
       state = await this.runtime.updateRecentMessageState(state);
 
@@ -190,9 +329,7 @@ export class MessageManager {
       if (!responseContent || !responseContent.text) return;
 
       await this.runtime.messageManager.createMemory({
-        id: stringToUuid(
-          messageId
-        ),
+        id: stringToUuid(messageId),
         agentId,
         userId,
         roomId,
@@ -205,7 +342,6 @@ export class MessageManager {
       });
       state = await this.runtime.updateRecentMessageState(state);
       return { converstationId: roomId, response: responseContent.text };
-
     } catch (error) {
       console.error("❌ Error handling message:", error);
       console.error("Error sending message:", error);
@@ -223,11 +359,7 @@ export class ElizaService extends BaseService {
     super();
     let character: Character;
     try {
-      const fullPath = resolve(
-        __dirname,
-        "../../..",
-        "character.json"
-      );
+      const fullPath = resolve(__dirname, "../../..", "character.json");
       elizaLogger.info(`Loading character from: ${fullPath}`);
 
       if (!existsSync(fullPath)) {
@@ -236,15 +368,9 @@ export class ElizaService extends BaseService {
 
       const fileContent = readFileSync(fullPath, "utf-8");
       character = JSON.parse(fileContent);
-      elizaLogger.info(
-        "Successfully loaded custom character:",
-        character.name
-      );
+      elizaLogger.info("Successfully loaded custom character:", character.name);
     } catch (error) {
-      console.error(
-        `Failed to load character from character.json: `,
-        error
-      );
+      console.error(`Failed to load character from character.json: `, error);
       elizaLogger.info("Falling back to default character");
       character = defaultCharacter;
     }
@@ -264,7 +390,7 @@ export class ElizaService extends BaseService {
     try {
       this.runtime = new AgentRuntime({
         databaseAdapter: db,
-        token: process.env.VENICE_AI_API_KEY || "",
+        token: process.env.GAIANET_API_KEY || "",
         modelProvider: character.modelProvider || ModelProviderName.OPENAI,
         character,
         conversationLength: 4096,
