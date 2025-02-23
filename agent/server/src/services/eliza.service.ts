@@ -79,7 +79,7 @@ const handleDisasterValidationTemplate =
 {{tweets}}
 
   "Latest Disasters that are already posted. SHOULD NOT BE included again"
-{{latestDisasters}}
+{{postedDisasters}}
 
 Your job is to find ONLY ONE most serious disaster (if present) and return its data as a response along with an estimated funds needed to recover from the disaster. 
 Estimate anywhere around 1000 to 100000. Foor small unserious disasters, the amount needed should be really low. It should be high only for very serious disasters. 
@@ -204,12 +204,14 @@ export class MessageManager {
     earthquakes,
     disasters,
     tweets,
-    latestDisasters,
+    postedDisasters,
+    searchEngineDisasters,
   }: {
     earthquakes: any[];
     disasters: any[];
     tweets: any[];
-    latestDisasters: any[];
+    postedDisasters: any[];
+    searchEngineDisasters: any[];
   }): Promise<ValidationResponse> {
     const context = composeContext({
       state: {
@@ -248,10 +250,10 @@ export class MessageManager {
           )
           .join("\n"),
 
-        latestDisasters:
-          latestDisasters.length == 0
+        postedDisasters:
+          postedDisasters.length == 0
             ? "No disasters posted yet."
-            : latestDisasters
+            : postedDisasters
                 .map(
                   (disaster: any) =>
                     `Title: ${disaster.title}

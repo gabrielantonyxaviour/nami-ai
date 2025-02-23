@@ -60,7 +60,7 @@ export class SupabaseService extends BaseService {
     // TODO LATER: After a certain time, you can tweet about the total donations received and close and thank everyone.
   }
 
-  public async getLastestDisasters(): Promise<any[]> {
+  public async getPostedDisasters(): Promise<any[]> {
     if (this.supabase) {
       const { data, error } = await this.supabase
         .from("nami_disasters")

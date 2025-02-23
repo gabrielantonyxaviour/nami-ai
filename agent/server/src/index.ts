@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { IService } from "./services/base.service.js";
 import chatRouter from "./routes/chat.js";
+import evaluationRouter from "./routes/evaluation.js";
 import cookieParser from "cookie-parser";
 import { AnyType } from "./utils/index.js";
 import { isHttpError } from "http-errors";
@@ -44,6 +45,7 @@ const supabaseService = SupabaseService.getInstance();
 const twitterService = TwitterService.getInstance();
 
 app.use("/chat", chatRouter);
+app.use("/evaluation", evaluationRouter);
 
 app.use((req, _res, next) => {
   console.log("Request URL:", req.originalUrl);

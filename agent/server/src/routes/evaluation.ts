@@ -8,8 +8,14 @@ const router = Router();
 
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    // const { message } = req.body;
-    // const elizaService = ElizaService.getInstance();
+    const { ngoId, disasterId } = req.body;
+    console.log("NGO ID: ", ngoId);
+    console.log("Disaster ID: ", disasterId);
+    // Fetch the NGO and Disaster from supabase
+
+    // Search the google search engine
+
+    // If positive, make a tx and push data to supabase
     console.log(req.body);
   } catch (error) {
     console.error("Error processing chat:", error);

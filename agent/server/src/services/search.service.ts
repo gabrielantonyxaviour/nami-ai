@@ -28,7 +28,9 @@ export class SearchService extends BaseService {
 
     const generateSearchDisasterLoop = async () => {
       while (true) {
-        // TODO: use google engine
+        // use google engine
+
+        const searchEngineDisasters: string[] = [];
         // use twitter browsing
         const searchTerms = [
           "latest disasters",
@@ -49,10 +51,10 @@ export class SearchService extends BaseService {
         ]);
 
         // Validate with AI
-        const latestDisasters = await supabaseService.getLastestDisasters();
+        const postedDisasters = await supabaseService.getPostedDisasters();
 
-        console.log("Latest Disasters Already Posted");
-        console.log(latestDisasters);
+        console.log("Disasters Already Posted");
+        console.log(postedDisasters);
 
         console.log("Earthquakes");
         console.log(earthquakes);
@@ -60,6 +62,8 @@ export class SearchService extends BaseService {
         console.log(disasters);
         console.log("Tweets");
         console.log(tweets);
+        console.log("Search Engine Disasters");
+        console.log(searchEngineDisasters);
 
         const {
           response,
@@ -73,7 +77,8 @@ export class SearchService extends BaseService {
           earthquakes,
           disasters,
           tweets: tweets.tweets,
-          latestDisasters,
+          postedDisasters,
+          searchEngineDisasters,
         });
 
         if (response) {
