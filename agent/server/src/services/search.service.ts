@@ -109,14 +109,12 @@ export class SearchService extends BaseService {
           namiContract.connect(aiAgentAccount);
 
           const createDisasterTx = namiContract.populate("create_disaster", [
-            200,
-            "hello",
+            BigInt(funds_needed || "1000") * BigInt(10 ** 6),
+            "hello", // TODO: Send IPFS hash as a ByteArray
           ]);
-          console.log("B");
           const res = await namiContract.create_disaster(
             createDisasterTx.calldata
           );
-          console.log("C");
           const txResponse = await provider.waitForTransaction(
             res.transaction_hash
           );
