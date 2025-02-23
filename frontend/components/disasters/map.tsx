@@ -2,13 +2,13 @@
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { GoogleMap, LoadScript, HeatmapLayerF } from "@react-google-maps/api";
-import { Disaster } from "@/lib/type";
+import { HardcodedDisaster } from "@/lib/type";
 import Image from "next/image";
 
 type HeatmapData = google.maps.visualization.WeightedLocation;
 
 const DisasterImpactMap: React.FC<{
-  disasters: Disaster[];
+  disasters: HardcodedDisaster[];
   focusedCoordinates: { lat: number; lng: number };
   width?: string | number;
   height?: string | number;
@@ -68,7 +68,7 @@ const DisasterImpactMap: React.FC<{
 
   const handleLoad = useCallback(() => {
     setIsGoogleLoaded(true);
-    const points = disasters.flatMap((dis: Disaster) =>
+    const points = disasters.flatMap((dis: HardcodedDisaster) =>
       generateAreaPoints(dis.coordinates.lat, dis.coordinates.lng, 0.2, 20)
     );
     setHeatmapData(points);

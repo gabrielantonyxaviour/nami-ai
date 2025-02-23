@@ -46,7 +46,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   ) : (
     <div className="flex flex-col items-center justify-center h-screen w-screen space-y-4">
       <Image src="/loading.gif" width={200} height={200} alt="loading" />
-      <p className="text-xl">Loading</p>
+      <p className="text-xl sen">Loading</p>
     </div>
   );
 }

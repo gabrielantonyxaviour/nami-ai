@@ -5,6 +5,8 @@ import { SupabaseService } from "./supabase.service.js";
 import { TwitterService } from "./twitter.service.js";
 import axios from "axios";
 import { RpcProvider, Contract, Account, constants } from "starknet";
+import uploadJSONToPinata from "src/utils/pinata.js";
+import { ethers } from "ethers";
 export class SearchService extends BaseService {
   private static instance: SearchService;
 
@@ -77,15 +79,24 @@ export class SearchService extends BaseService {
         if (response) {
           console.log("No disasters to post");
         } else {
-          console.log("Disaster to post");
-          console.log("Title: ", title);
-          console.log("Location: ", location);
-          console.log("Description: ", description);
-          console.log("Source URL: ", source_url);
-          console.log("Funds Needed: ", funds_needed);
-          console.log("Type: ", type);
+          // Upload JSON to IPFS
+          console.log("Preparing JSON data for IPFS upload...");
+          const jsonData = {
+            title: title || "Disaster",
+            description: description || "A very bad thing happened",
+            funds_needed: funds_needed || "1000",
+            type: type || "natural disaster",
+            sources: source_url ? [source_url] : [],
+            images: [],
+            location: location || "Earth",
+            created_at: new Date().toISOString(),
+          };
 
-          // Send Tx
+          console.log("Uploading JSON to IPFS...");
+          const ipfsUrl = await uploadJSONToPinata(jsonData);
+          console.log("IPFS URL:", ipfsUrl);
+
+          console.log("Setting up StarkNet provider and account...");
           const provider = new RpcProvider({
             nodeUrl: `https://starknet-sepolia.public.blastapi.io`,
           });
@@ -96,43 +107,52 @@ export class SearchService extends BaseService {
             undefined,
             constants.TRANSACTION_VERSION.V3
           );
+
           const namiAddress =
             "0x04cf129a9a73e2b0854d21efc34f9d1a81fb7b4de9079a1eb74890a0892dc079";
           const { abi: namiAbi } = await provider.getClassAt(namiAddress);
 
           if (namiAbi === undefined) {
-            throw new Error("no abi.");
+            throw new Error("No ABI found for Nami contract.");
           }
-          console.log("Q");
 
+          console.log("Connecting to Nami contract...");
           const namiContract = new Contract(namiAbi, namiAddress, provider);
           namiContract.connect(aiAgentAccount);
 
+          console.log("Populating create_disaster transaction...");
           const createDisasterTx = namiContract.populate("create_disaster", [
-            200,
-            "hello",
+            BigInt(funds_needed || "1000") * BigInt(10 ** 6),
+            ethers.getBytes(ipfsUrl),
           ]);
-          console.log("B");
+
+          console.log("Sending create_disaster transaction...");
           const res = await namiContract.create_disaster(
             createDisasterTx.calldata
           );
-          console.log("C");
+
+          console.log("Waiting for transaction confirmation...");
           const txResponse = await provider.waitForTransaction(
             res.transaction_hash
           );
+
           if (txResponse.isSuccess()) {
+            console.log("Transaction successful!");
             const events = txResponse.events;
             const disasterId = Number(events[0].data[0]);
 
             const donationUrl =
               "https://stark-nami-ai.vercel.app/embed/" + disasterId;
-            // Tweet on X
+            console.log("Donation URL:", donationUrl);
+
+            console.log("Tweeting donation URL...");
             const tweet = await scraper.sendTweet(donationUrl);
             const tweetResponse: any = await tweet.json();
 
             const tweetUrl = `https://twitter.com/NamiAIStarknet/status/${tweetResponse.data.create_tweet.tweet_results.result.rest_id}`;
-            //  Save to Supabase
+            console.log("Tweet URL:", tweetUrl);
 
+            console.log("Saving disaster to Supabase...");
             await supabaseService.createDisaster({
               title: title || "Disaster",
               description: description || "A very bad thing happened",
@@ -144,14 +164,14 @@ export class SearchService extends BaseService {
               tweet_url: tweetUrl,
               funds_raised: "0",
             });
+          } else {
+            console.error("Transaction failed:", txResponse);
           }
         }
-
         console.log("Waiting for 1 hour...");
         await new Promise((resolve) => setTimeout(resolve, 60 * 60 * 1000));
       }
     };
-
     generateSearchDisasterLoop();
   }
   private async collectReliefWeb() {

@@ -2,9 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Address, Chain, createPublicClient, getContract, http } from "viem";
 import { baseSepolia, kinto, polygonAmoy, sepolia } from "viem/chains";
-import { Disaster, KYCViewerInfo } from "./type";
-import { kintoContracts } from "./kintoContracts";
-import { KintoAccountInfo } from "kinto-web-sdk";
+import { HardcodedDisaster } from "./type";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -92,54 +90,6 @@ export const getChainRpcAndExplorer = (
   }
 };
 
-export async function fetchKYCViewerInfo({
-  accountInfo,
-}: {
-  accountInfo: KintoAccountInfo;
-}): Promise<KYCViewerInfo | null> {
-  if (!accountInfo.walletAddress) return null;
-
-  const client = createPublicClient({
-    chain: kinto,
-    transport: http(),
-  });
-  const kycViewer = getContract({
-    address: kintoContracts.contracts.KYCViewer.address as Address,
-    abi: kintoContracts.contracts.KYCViewer.abi,
-    client: { public: client },
-  });
-
-  try {
-    const [
-      isIndividual,
-      isCorporate,
-      isKYC,
-      isSanctionsSafe,
-      getCountry,
-      getWalletOwners,
-    ] = await Promise.all([
-      kycViewer.read.isIndividual([accountInfo.walletAddress]),
-      kycViewer.read.isCompany([accountInfo.walletAddress]),
-      kycViewer.read.isKYC([accountInfo.walletAddress]),
-      kycViewer.read.isSanctionsSafe([accountInfo.walletAddress]),
-      kycViewer.read.getCountry([accountInfo.walletAddress]),
-      kycViewer.read.getWalletOwners([accountInfo.walletAddress]),
-    ]);
-
-    return {
-      isIndividual,
-      isCorporate,
-      isKYC,
-      isSanctionsSafe,
-      getCountry,
-      getWalletOwners,
-    } as KYCViewerInfo;
-  } catch (error) {
-    console.error("Failed to fetch KYC viewer info:", error);
-    return null;
-  }
-}
-
 export function formatDate(isoString: string) {
   const months = [
     "January",
@@ -164,22 +114,22 @@ export function formatDate(isoString: string) {
 }
 
 export const sortDisastersByTotalRaisedAsc = (
-  disasters: Disaster[]
-): Disaster[] => {
+  disasters: HardcodedDisaster[]
+): HardcodedDisaster[] => {
   return disasters.sort((a, b) => a.totalRaisedInUSD - b.totalRaisedInUSD);
 };
 
 // Sort in descending order by totalRaisedInUSD
 export const sortDisastersByTotalRaisedDesc = (
-  disasters: Disaster[]
-): Disaster[] => {
+  disasters: HardcodedDisaster[]
+): HardcodedDisaster[] => {
   return disasters.sort((a, b) => b.totalRaisedInUSD - a.totalRaisedInUSD);
 };
 
 // Sort in descending order by createdAt
 export const sortDisastersByCreatedAtDesc = (
-  disasters: Disaster[]
-): Disaster[] => {
+  disasters: HardcodedDisaster[]
+): HardcodedDisaster[] => {
   return disasters.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
@@ -187,8 +137,8 @@ export const sortDisastersByCreatedAtDesc = (
 
 // Sort in ascending order by createdAt
 export const sortDisastersByCreatedAtAsc = (
-  disasters: Disaster[]
-): Disaster[] => {
+  disasters: HardcodedDisaster[]
+): HardcodedDisaster[] => {
   return disasters.sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );

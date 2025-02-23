@@ -1,11 +1,15 @@
-import { Disaster } from "@/lib/type";
+import { HardcodedDisaster } from "@/lib/type";
 import { Badge } from "../ui/badge";
 import { IconCalendar } from "@tabler/icons-react";
 import { formatDate } from "@/lib/utils";
 import { Card, CardContent } from "../ui/card";
 import Image from "next/image";
 
-export default function DonateBody({ disaster }: { disaster: Disaster }) {
+export default function DonateBody({
+  disaster,
+}: {
+  disaster: HardcodedDisaster;
+}) {
   return (
     <>
       <div className="flex">

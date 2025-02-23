@@ -9,7 +9,6 @@ import {
   zeroAddress,
 } from "viem";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
-import { Disaster, Token } from "./type";
 import {
   baseSepolia,
   kinto,
@@ -17,6 +16,7 @@ import {
   scrollSepolia,
   sepolia,
 } from "viem/chains";
+import { HardcodedDisaster } from "./type";
 
 export const idToChain: Record<number, Chain> = {
   [baseSepolia.id]: baseSepolia,
@@ -1351,6 +1351,15 @@ export const KINTO_CORE_ABI = [
   },
 ];
 
+interface Token {
+  address: string;
+  chainId: number;
+  decimals: number;
+  image: string;
+  name: string;
+  symbol: string;
+}
+
 export const wethToken: Token = {
   address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
   chainId: 1,
@@ -1425,7 +1434,7 @@ export const mapsStyle = [
   },
 ];
 
-export const disasters: Disaster[] = [
+export const disasters: HardcodedDisaster[] = [
   {
     id: 1,
     title: "Floods in Thailand",
@@ -1447,7 +1456,6 @@ export const disasters: Disaster[] = [
     id: 2,
     title: "Wildfire in Brazil",
     images: ["/disasters/brazil.png"],
-
     coordinates: {
       lat: -3.7436,
       lng: -73.2516,
@@ -1465,7 +1473,6 @@ export const disasters: Disaster[] = [
     id: 3,
     title: "Earthquake in Tokyo",
     images: ["/disasters/tokyo.png"],
-
     coordinates: {
       lat: 35.6762,
       lng: 139.6503,
