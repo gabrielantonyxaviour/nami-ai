@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { idToChainInfo, idToTokenInfo, publicClients } from "@/lib/constants";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+
 import {
   createWalletClient,
   custom,
@@ -41,6 +42,7 @@ import {
 import {
   DynamicWidget,
   useIsLoggedIn,
+  useOpenFundingOptions,
   useWalletOptions,
 } from "@dynamic-labs/sdk-react-core";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
@@ -68,6 +70,8 @@ export default function Donate({
   const [donateFundsAmount, setDonateFundsAmount] = useState("0");
   const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>("");
   const { switchChainAsync } = useSwitchChain();
+  const { openFundingOptions } = useOpenFundingOptions();
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "crypto" | "fiat" | null
   >(null);
@@ -693,7 +697,7 @@ export default function Donate({
                       <Button
                         className="w-1/2 outline outline-primary"
                         variant="outline"
-                        onClick={() => setSelectedPaymentMethod("fiat")}
+                        onClick={() => openFundingOptions()}
                       >
                         Fiat
                       </Button>
