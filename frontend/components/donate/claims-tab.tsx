@@ -176,9 +176,7 @@ const ClaimsTab = ({ id, claims }: { id: string; claims: StarkClaim[] }) => {
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Recent Stark Claims
-        </h2>
+        <h2 className="text-2xl font-bold tracking-tight">NGO Claims</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -252,7 +250,7 @@ const ClaimsTab = ({ id, claims }: { id: string; claims: StarkClaim[] }) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full hover:bg-primary hover:text-white"
                   onClick={() => window.open(claim.tweet_url || "#", "_blank")}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
