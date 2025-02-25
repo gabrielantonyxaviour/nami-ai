@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 interface NgoFormData {
   name: string;
@@ -22,6 +23,7 @@ interface NgoFormData {
   image: File | null;
 }
 export default function ApplyForm({ id }: { id: string }) {
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<NgoFormData>({
     name: "",
@@ -69,11 +71,11 @@ export default function ApplyForm({ id }: { id: string }) {
       !formData.location ||
       !formData.image
     ) {
-      // toast({
-      //   title: "Missing Information",
-      //   description: "Please fill in all fields and upload an image.",
-      //   variant: "destructive",
-      // });
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields and upload an image.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -121,21 +123,30 @@ export default function ApplyForm({ id }: { id: string }) {
       });
       const { response: reason, amount } = await response2.json();
       if (reason) {
+        toast({
+          title: "Claim Failed",
+          description: `Reason: ${reason}`,
+          variant: "destructive",
+        });
       } else {
+        toast({
+          title: "Claim Successful",
+          description: `Claim for $${amount} has been processed successfully.`,
+        });
       }
 
-      // toast({
-      //   title: "Success!",
-      //   description: "NGO information has been submitted successfully.",
-      // });
+      toast({
+        title: "Success!",
+        description: "NGO information has been submitted successfully.",
+      });
     } catch (error) {
       console.error("Error submitting NGO form:", error);
-      // toast({
-      //   title: "Submission Failed",
-      //   description:
-      //     "There was a problem submitting your information. Please try again.",
-      //   variant: "destructive",
-      // });
+      toast({
+        title: "Submission Failed",
+        description:
+          "There was a problem submitting your information. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
