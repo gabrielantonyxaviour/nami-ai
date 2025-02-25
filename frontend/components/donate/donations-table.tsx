@@ -57,9 +57,10 @@ import {
 import { baseSepolia, kinto, polygonAmoy, sepolia } from "viem/chains";
 import { DropdownMenuRadioGroup } from "@radix-ui/react-dropdown-menu";
 import { useEnvironmentStore } from "../context";
+import { StarkDonation } from "@/lib/type";
 
 // Sample data and types
-const data: Donation[] = [
+const data: HardcodedDonation[] = [
   {
     id: "1",
     address: "0x3A1D4A8433e893E7B1dD6aAa2A91fB2e9f54D1F2",
@@ -107,7 +108,7 @@ const data: Donation[] = [
   },
 ];
 
-export type Donation = {
+export type HardcodedDonation = {
   id: string;
   address: string;
   timestamp: string;
@@ -118,7 +119,13 @@ export type Donation = {
 };
 
 // DataTable component using ShadCN
-export default function DonationsTable({ id }: { id: string }) {
+export default function DonationsTable({
+  id,
+  donations,
+}: {
+  id: string;
+  donations: StarkDonation[];
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -131,7 +138,7 @@ export default function DonationsTable({ id }: { id: string }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const { overallDonations } = useEnvironmentStore((store) => store);
 
-  const columns: ColumnDef<Donation>[] = React.useMemo(
+  const columns: ColumnDef<HardcodedDonation>[] = React.useMemo(
     () => [
       {
         id: "select",

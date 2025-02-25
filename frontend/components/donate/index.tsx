@@ -18,27 +18,27 @@ import { gql } from "@apollo/client";
 import { usePathname, useSearchParams } from "next/navigation";
 import ApplyForm from "./apply-form";
 import ClaimsTab from "./claims-tab";
+import { Disaster, NGO, StarkClaim, StarkDonation } from "@/lib/type";
 
 export default function Donate({ id }: { id: string }) {
   const disaster = disasters.find((disaster) => disaster.id === parseInt(id));
   const [showSwapModalPopover, setShowSwapModalPopover] = useState(false);
   const [donationData, setDonationData] = useState([]);
+  const [fetchedDisaster, setFetchedDisaster] = useState<Disaster | null>(null);
+  const [donations, setDonations] = useState<StarkDonation[] | null>(null);
+  const [claims, setClaims] = useState<
+    (StarkClaim & { ngo_details: NGO })[] | null
+  >(null);
   const pathname = usePathname();
 
   useEffect(() => {
     (async function () {
       try {
-        // const data = await graphClient.query({
-        //   query: GET_DISASTERS_BY_ADDRESS_QUERY,
-        //   variables: {
-        //     vault: "0x0429A2Da7884CA14E53142988D5845952fE4DF6a", // TODO: Change this to disasterId
-        //     to: "0x0429A2Da7884CA14E53142988D5845952fE4DF6a",
-        //     tokenSymbol: null,
-        //     chain: null,
-        //   },
-        // });
-        // console.log(data);
-        // setDonationData(data.data.disasters);
+        const response = await fetch("/api/supabase/disasters/" + id);
+        const { disaster, claims, donations } = await response.json();
+        setFetchedDisaster(disaster);
+        setClaims(claims);
+        setDonations(donations);
       } catch (e) {
         console.log(e);
       }
@@ -53,8 +53,8 @@ export default function Donate({ id }: { id: string }) {
         <DonateBody disaster={disaster} />
         {pathname.split("/")[1] == "donate" ? (
           <>
-            <DonationTable id={id} />
-            <ClaimsTab id={id} />
+            <DonationTable id={id} donations={donations || []} />
+            <ClaimsTab id={id} claims={claims || []} />
           </>
         ) : (
           <ApplyForm id={id} />
