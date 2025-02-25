@@ -7,6 +7,7 @@ import { IconCalendar, IconLink } from "@tabler/icons-react";
 import { Progress } from "@/components/ui/progress";
 import { Button, buttonVariants } from "../ui/button";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Disaster(disaster: {
   id: number;
@@ -23,6 +24,7 @@ export default function Disaster(disaster: {
   requiredFundsInUSD: number;
   setFocusCoordinates: () => void;
 }) {
+  const pathname = usePathname();
   return (
     <Card>
       <CardContent className="p-0 w-full h-[220px] flex relative">
@@ -64,23 +66,26 @@ export default function Disaster(disaster: {
               }
               className="h-2 mb-1"
             />
-            <div className="grid grid-cols-5 gap-2">
-              <Link
-                href={`/donate/${disaster.id}`}
-                className={`${buttonVariants({
-                  variant: "default",
-                })} col-span-3 rounded-[5px] py-1 text-xs px-0 h-6 sen`}
-              >
-                DONATE
-              </Link>
-              <Link
-                href={`/donate/${disaster.id}?apply=true`}
-                className={`sen ${buttonVariants({
-                  variant: "outline",
-                })} col-span-2 bg-[#ffc20e] hover:bg-[#ffc20e] hover:opacity-80 rounded-[5px] py-1 text-xs px-0 h-6 `}
-              >
-                APPLY
-              </Link>
+            <div className="w-full flex">
+              {pathname.split("/")[1] == "donate" ? (
+                <Link
+                  href={`/ngo/${disaster.id}`}
+                  className={`${buttonVariants({
+                    variant: "default",
+                  })} flex-1 rounded-[5px] py-1 text-xs px-0 h-6 sen`}
+                >
+                  DONATE NOW
+                </Link>
+              ) : (
+                <Link
+                  href={`/ngo/${disaster.id}?apply=true`}
+                  className={`sen ${buttonVariants({
+                    variant: "outline",
+                  })} flex-1 bg-[#ffc20e] hover:bg-[#ffc20e] hover:opacity-80 rounded-[5px] py-1 text-xs px-0 h-6 `}
+                >
+                  APPLY FOR FUNDING
+                </Link>
+              )}
             </div>
           </div>
         </div>
