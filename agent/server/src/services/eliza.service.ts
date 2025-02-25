@@ -79,7 +79,7 @@ const handleDisasterValidationTemplate =
 {{tweets}}
 
   "Latest Disasters that are already posted. SHOULD NOT BE included again"
-{{latestDisasters}}
+{{postedDisasters}}
 
 Your job is to find ONLY ONE most serious disaster (if present) and return its data as a response along with an estimated funds needed to recover from the disaster. 
 Estimate anywhere around 1000 to 100000. Foor small unserious disasters, the amount needed should be really low. It should be high only for very serious disasters. 
@@ -161,16 +161,55 @@ export class MessageManager {
     return response;
   }
 
+  public async handleGeneration(state: any, promptTemplate: string) {
+    const context = composeContext({
+      state,
+      template: promptTemplate,
+    });
+
+    const completion = await this.openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: context,
+        },
+      ],
+      model: "deepseek/deepseek-r1-distill-llama-70b",
+    });
+
+    elizaLogger.debug("COMPLETION  RESPONES");
+    elizaLogger.debug("Received response from HeuristAI model.");
+    console.log(completion);
+    const messageContent = completion.choices[0].message.content;
+    if (!messageContent) {
+      console.error("❌ No response from generateMessageResponse");
+      return { response: "No disasters found" };
+    }
+    // const response = {
+    //   text: messageContent as string,
+    // };
+    console.log(messageContent);
+    const cleanJson = messageContent
+      .replace(/^```json\n/, "")
+      .replace(/\n```$/, "");
+    console.log(cleanJson);
+    console.log(JSON.parse(cleanJson));
+    elizaLogger.debug("[_generateResponse] check2");
+
+    elizaLogger.debug("[_generateResponse] check3");
+    return JSON.parse(cleanJson);
+  }
+
   public async handleDisasterValidation({
     earthquakes,
     disasters,
     tweets,
-    latestDisasters,
+    postedDisasters,
   }: {
     earthquakes: any[];
     disasters: any[];
     tweets: any[];
-    latestDisasters: any[];
+    postedDisasters: any[];
   }): Promise<ValidationResponse> {
     const context = composeContext({
       state: {
@@ -209,10 +248,10 @@ export class MessageManager {
           )
           .join("\n"),
 
-        latestDisasters:
-          latestDisasters.length == 0
+        postedDisasters:
+          postedDisasters.length == 0
             ? "No disasters posted yet."
-            : latestDisasters
+            : postedDisasters
                 .map(
                   (disaster: any) =>
                     `Title: ${disaster.title}

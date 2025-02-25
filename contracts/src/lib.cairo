@@ -1,0 +1,2 @@
+mod NamiCore;
+mod NamiDisaster;

@@ -5,7 +5,7 @@ import { SupabaseService } from "./supabase.service.js";
 import { TwitterService } from "./twitter.service.js";
 import axios from "axios";
 import { RpcProvider, Contract, Account, constants } from "starknet";
-import uploadJSONToPinata from "src/utils/pinata.js";
+import uploadJSONToPinata from "../utils/pinata.js";
 import { ethers } from "ethers";
 export class SearchService extends BaseService {
   private static instance: SearchService;
@@ -28,7 +28,9 @@ export class SearchService extends BaseService {
 
     const generateSearchDisasterLoop = async () => {
       while (true) {
-        // TODO: use google engine
+        // use google engine
+
+        const searchEngineDisasters: string[] = [];
         // use twitter browsing
         const searchTerms = [
           "latest disasters",
@@ -49,10 +51,10 @@ export class SearchService extends BaseService {
         ]);
 
         // Validate with AI
-        const latestDisasters = await supabaseService.getLastestDisasters();
+        const postedDisasters = await supabaseService.getPostedDisasters();
 
-        console.log("Latest Disasters Already Posted");
-        console.log(latestDisasters);
+        console.log("Disasters Already Posted");
+        console.log(postedDisasters);
 
         console.log("Earthquakes");
         console.log(earthquakes);
@@ -60,6 +62,8 @@ export class SearchService extends BaseService {
         console.log(disasters);
         console.log("Tweets");
         console.log(tweets);
+        console.log("Search Engine Disasters");
+        console.log(searchEngineDisasters);
 
         const {
           response,
@@ -73,7 +77,8 @@ export class SearchService extends BaseService {
           earthquakes,
           disasters,
           tweets: tweets.tweets,
-          latestDisasters,
+          postedDisasters,
+          // searchEngineDisasters,
         });
 
         if (response) {
@@ -109,7 +114,7 @@ export class SearchService extends BaseService {
           );
 
           const namiAddress =
-            "0x04cf129a9a73e2b0854d21efc34f9d1a81fb7b4de9079a1eb74890a0892dc079";
+            "0x01198a7dceac6e4c5bb16eb29c6ddf57cd22affb4be476f8f4e8d3131d75bae0";
           const { abi: namiAbi } = await provider.getClassAt(namiAddress);
 
           if (namiAbi === undefined) {
