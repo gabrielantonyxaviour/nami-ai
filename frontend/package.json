@@ -11,6 +11,8 @@
   "dependencies": {
     "@apollo/client": "^3.11.10",
     "@dynamic-labs/bitcoin": "^4.7.2",
+    "@dynamic-labs/iconic": "^4.7.2",
+    "@dynamic-labs/sdk-react": "^0.18.30",
     "@dynamic-labs/sdk-react-core": "^4.7.2",
     "@dynamic-labs/solana": "^4.7.2",
     "@radix-ui/react-checkbox": "^1.1.2",

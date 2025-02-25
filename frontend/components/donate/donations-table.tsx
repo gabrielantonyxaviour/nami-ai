@@ -201,8 +201,11 @@ export default function DonationsTable({ apply }: { apply: boolean }) {
           return (
             <div className="sen text-center ">
               {
-                allChains[(row.getValue("chainId") || baseSepolia.id) as any]
-                  .name
+                (
+                  allChains[
+                    (row.getValue("chainId") || baseSepolia.id) as any
+                  ] || { name: "Unknown" }
+                ).name
               }
             </div>
           );

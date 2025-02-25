@@ -22,7 +22,7 @@ import {
   zeroAddress,
 } from "viem";
 import { Input } from "@/components/ui/input";
-import { useAccount, useSwitchChain } from "wagmi";
+import { useAccount, useDisconnect, useSwitchChain } from "wagmi";
 import { toast } from "@/hooks/use-toast";
 import {
   ConnectButton,
@@ -36,6 +36,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DynamicWidget,
+  useIsLoggedIn,
+  useWalletOptions,
+} from "@dynamic-labs/sdk-react-core";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { disconnect } from "process";
 
 export default function Donate({
   params,
@@ -50,8 +57,10 @@ export default function Donate({
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
   const { address, chainId } = useAccount();
+  const { disconnect } = useDisconnect();
   const [selectedChainId, setSelectedChainId] = useState<number>(0);
   const [openBasePayModal, setOpenBasePayModal] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<number>(0);
   const [apply, setApply] = useState(false);
   const searchParams = useSearchParams();
   const [openEvmPayModal, setOpenEvmPayModal] = useState(false);
@@ -65,6 +74,9 @@ export default function Donate({
     (store) => store
   );
   const vaultAddress = "0xace8655DE7f2a1865DDd686CFcdD47447B86965C";
+  const { setShowAuthFlow, handleLogOut } = useDynamicContext();
+  const isLoggedIn = useIsLoggedIn();
+  const { selectWalletOption } = useWalletOptions();
 
   // Add these at the top of your component
   const [tokenBalances, setTokenBalances] = useState<{ [key: string]: string }>(
@@ -75,6 +87,8 @@ export default function Donate({
   useEffect(() => {
     console.log(disaster);
     console.log(params.id);
+    if (isLoggedIn) handleLogOut();
+    if (address) disconnect();
   }, []);
 
   // Add this useEffect to fetch balances when chain or address changes
@@ -137,7 +151,11 @@ export default function Donate({
               alt="logo"
               className="rounded-full"
             />
-            {address && <ConnectButton />}
+            {address && selectedNetwork == 1 ? (
+              <ConnectButton />
+            ) : (
+              isLoggedIn && <DynamicWidget variant="modal" />
+            )}
           </div>
           <div className="w-full h-[250px] overflow-hidden rounded-xl">
             <Image
@@ -311,12 +329,81 @@ export default function Donate({
                       </Select>
                     </div>
                   )}
-
+                  {/* Network Selection */}
+                  {(!address || !isLoggedIn) && (
+                    <div className="flex space-x-2 justify-center">
+                      <Image
+                        src={"/chains/eth.png"}
+                        width={24}
+                        height={24}
+                        className={
+                          selectedNetwork == 1
+                            ? "opacity-100 select-none rounded-full transition"
+                            : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full transition"
+                        }
+                        alt={"EVM"}
+                        onClick={() => {
+                          setSelectedNetwork(1);
+                          setSelectedChainId(0);
+                          setSelectedTokenAddress(""); // Reset selected token
+                          setTokenBalances({}); // Reset token balances
+                          setDonateFundsAmount("0"); // Optionally reset the amount
+                        }}
+                      />
+                      <Image
+                        src={"/chains/bitcoin.png"}
+                        width={24}
+                        height={24}
+                        className={
+                          selectedNetwork == 2
+                            ? "opacity-100 select-none rounded-full transition"
+                            : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full transition"
+                        }
+                        alt={"BTC"}
+                        onClick={() => {
+                          setSelectedNetwork(2);
+                          setSelectedChainId(0);
+                          setSelectedTokenAddress(""); // Reset selected token
+                          setTokenBalances({}); // Reset token balances
+                          setDonateFundsAmount("0"); // Optionally reset the amount
+                        }}
+                      />
+                      <Image
+                        src={"/chains/solana.png"}
+                        width={24}
+                        height={24}
+                        className={
+                          selectedNetwork == 3
+                            ? "opacity-100 select-none rounded-full transition"
+                            : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full transition"
+                        }
+                        alt={"SOL"}
+                        onClick={() => {
+                          setSelectedNetwork(3);
+                          setSelectedChainId(0);
+                          setSelectedTokenAddress(""); // Reset selected token
+                          setTokenBalances({}); // Reset token balances
+                          setDonateFundsAmount("0"); // Optionally reset the amount
+                        }}
+                      />
+                    </div>
+                  )}
                   {/* Payment Method Selection */}
                   {!address ? (
                     <Button
                       className="bg-primary w-full"
-                      onClick={openConnectModal}
+                      disabled={selectedNetwork == 0}
+                      onClick={() => {
+                        if (selectedNetwork == 1) {
+                          if (openConnectModal) openConnectModal();
+                        } else if (selectedNetwork == 2) {
+                          selectWalletOption("BTC");
+                          setShowAuthFlow(true);
+                        } else if (selectedNetwork == 3) {
+                          selectWalletOption("SOL");
+                          setShowAuthFlow(true);
+                        }
+                      }}
                     >
                       Connect Wallet
                     </Button>
