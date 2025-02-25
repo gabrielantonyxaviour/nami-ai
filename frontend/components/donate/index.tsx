@@ -45,13 +45,6 @@ export default function Donate({ id }: { id: string }) {
     })();
   }, [id]);
   const params = useSearchParams();
-  const [apply, setApply] = useState(false);
-  useEffect(() => {
-    const applyParam = params.get("apply")
-      ? JSON.parse(params.get("apply") as string)
-      : false;
-    setApply(applyParam);
-  }, [params]);
 
   return disaster ? (
     <div className="w-[1000px] h-full mx-auto pt-6">
@@ -60,7 +53,7 @@ export default function Donate({ id }: { id: string }) {
         <DonateBody disaster={disaster} />
         {pathname.split("/")[1] == "donate" ? (
           <>
-            <DonationTable apply={apply} id={id} />
+            <DonationTable id={id} />
             <ClaimsTab id={id} />
           </>
         ) : (

@@ -53,7 +53,6 @@ export default function DonateBody({
           </CardContent>
         </Card>
       </div>
-      <p className="nouns tracking-widest text-lg py-4">Donations</p>
     </>
   );
 }

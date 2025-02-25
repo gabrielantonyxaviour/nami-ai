@@ -118,13 +118,7 @@ export type Donation = {
 };
 
 // DataTable component using ShadCN
-export default function DonationsTable({
-  apply,
-  id,
-}: {
-  apply: boolean;
-  id: string;
-}) {
+export default function DonationsTable({ id }: { id: string }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -293,7 +287,6 @@ export default function DonationsTable({
   );
 
   const tableData = React.useMemo(() => {
-    if (apply) return data;
     if (overallDonations > 0) {
       return [
         {
@@ -308,7 +301,7 @@ export default function DonationsTable({
       ];
     }
     return [];
-  }, [apply, overallDonations]);
+  }, [overallDonations]);
 
   const table = useReactTable({
     data: tableData,
@@ -331,7 +324,8 @@ export default function DonationsTable({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <p className="nouns tracking-widest text-lg pb-4 pt-8 ">Donations</p>
+      <div className="flex items-center pb-4">
         <Input
           placeholder="Filter addresses..."
           value={(table.getColumn("address")?.getFilterValue() as string) ?? ""}

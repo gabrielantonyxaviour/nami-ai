@@ -171,11 +171,7 @@ export default function Donate({
           <Card className="w-full bg-[#F2F2F2]">
             <CardContent className="relative pt-6 pb-4 px-6 flex flex-col space-y-4">
               <div>
-                <p className="nouns tracking-wider text-sm text-[#7C7C7A] pb-2">{`$${
-                  apply == true
-                    ? disaster.totalRaisedInUSD.toLocaleString()
-                    : overallDonations.toString()
-                } out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
+                <p className="nouns tracking-wider text-sm text-[#7C7C7A] pb-2">{`$${disaster.totalRaisedInUSD.toLocaleString()} out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
                 <Progress
                   value={
                     (disaster.totalRaisedInUSD * 100) /

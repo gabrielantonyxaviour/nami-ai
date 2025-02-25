@@ -75,11 +75,7 @@ export default function DonateHero({
         <Card className="w-[47%] bg-[#F2F2F2]">
           <CardContent className="relative pt-8 pb-4 px-8 flex flex-col justify-between h-full">
             <div>
-              <p className="nouns tracking-wider text-sm text-[#7C7C7A] pt-4 pb-2">{`$${
-                apply == true
-                  ? disaster.totalRaisedInUSD.toLocaleString()
-                  : "1000"
-              } out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
+              <p className="nouns tracking-wider text-sm text-[#7C7C7A] pt-4 pb-2">{`$${disaster.totalRaisedInUSD.toLocaleString()} out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
               <Progress
                 value={
                   (disaster.totalRaisedInUSD * 100) /

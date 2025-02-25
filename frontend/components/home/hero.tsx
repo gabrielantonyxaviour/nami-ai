@@ -22,7 +22,7 @@ export default function Hero() {
           Explore Campaigns
         </Link>
         <Link
-          href="/donate"
+          href="/ngo"
           className={`${buttonVariants({
             size: "sm",
             variant: "ghost",
