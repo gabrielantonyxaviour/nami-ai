@@ -28,7 +28,11 @@ import { Input } from "../ui/input";
 import { useAccount } from "wagmi";
 import { toast } from "@/hooks/use-toast";
 import { useChainModal, useConnectModal } from "@rainbow-me/rainbowkit";
-
+import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
+import { BitcoinWalletConnectors } from "@dynamic-labs/bitcoin";
+import { SolanaWalletConnectors } from "@dynamic-labs/solana";
+import BtcButton from "./btcButton";
+import SolanaButton from "./solanaButton";
 export default function DonateHero({
   disaster,
 }: {
@@ -118,6 +122,36 @@ export default function DonateHero({
                     />
                   )
                 )}
+              <Image
+                key={11}
+                src={`/chains/bitcoin.png`}
+                width={32}
+                height={32}
+                className={
+                  selectedChainId === 11
+                    ? "opacity-100 select-none rounded-full  transition duration-200 ease-in-out"
+                    : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full  transition duration-200 ease-in-out"
+                }
+                alt={"Bitcoin"}
+                onClick={() => {
+                  setSelectedChainId(11);
+                }}
+              />
+              <Image
+                key={12}
+                src={`/chains/solana.png`}
+                width={32}
+                height={32}
+                className={
+                  selectedChainId === 12
+                    ? "opacity-100 select-none rounded-full  transition duration-200 ease-in-out"
+                    : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full  transition duration-200 ease-in-out"
+                }
+                alt={"Solana"}
+                onClick={() => {
+                  setSelectedChainId(12);
+                }}
+              />
             </div>
             <div>
               {apply ? (
@@ -134,6 +168,24 @@ export default function DonateHero({
                 >
                   <p className="sen ">Connect Wallet</p>
                 </Button>
+              ) : selectedChainId == 11 ? (
+                <DynamicContextProvider
+                  settings={{
+                    environmentId: process.env.NEXT_PUBLIC_DYNAMIC_BTC || "",
+                    walletConnectors: [BitcoinWalletConnectors],
+                  }}
+                >
+                  <BtcButton address={address || ""} />
+                </DynamicContextProvider>
+              ) : selectedChainId == 12 ? (
+                <DynamicContextProvider
+                  settings={{
+                    environmentId: process.env.NEXT_PUBLIC_DYNAMIC_SOLANA || "",
+                    walletConnectors: [SolanaWalletConnectors],
+                  }}
+                >
+                  <SolanaButton address={address || ""} />
+                </DynamicContextProvider>
               ) : (
                 <Button
                   className="w-full flex justify-center items-center space-x-2 bg-[#6059C9] "
