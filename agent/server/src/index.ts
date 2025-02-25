@@ -15,7 +15,7 @@ import { ElizaService } from "./services/eliza.service.js";
 import { NgrokService } from "./services/ngrok.service.js";
 import { SupabaseService } from "./services/supabase.service.js";
 // import { LitService } from "./services/lit.service.js";
-// import { SearchService } from "./services/search.service.js";
+import { SearchService } from "./services/search.service.js";
 import { TwitterService } from "./services/twitter.service.js";
 
 // Convert ESM module URL to filesystem path
@@ -90,14 +90,13 @@ app.listen(port, async () => {
     await elizaService.start();
     await supabaseService.start();
 
-    // const searchService = SearchService.getInstance();
-    // await searchService.start();
+    const searchService = SearchService.getInstance();
+    await searchService.start();
 
-    // services.push(searchService);
     services.push(elizaService);
     services.push(supabaseService);
     services.push(twitterService);
-    // services.push(searchService);
+    services.push(searchService);
 
     if (process.env.NODE_ENV == "dev") {
       const ngrokService = NgrokService.getInstance();

@@ -69,7 +69,7 @@ export default function Disaster(disaster: {
             <div className="w-full flex">
               {pathname.split("/")[1] == "donate" ? (
                 <Link
-                  href={`/ngo/${disaster.id}`}
+                  href={`/donate/${disaster.id}`}
                   className={`${buttonVariants({
                     variant: "default",
                   })} flex-1 rounded-[5px] py-1 text-xs px-0 h-6 sen`}
