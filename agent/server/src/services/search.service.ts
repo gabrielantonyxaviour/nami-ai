@@ -114,7 +114,7 @@ export class SearchService extends BaseService {
           );
 
           const namiAddress =
-            "0x04cf129a9a73e2b0854d21efc34f9d1a81fb7b4de9079a1eb74890a0892dc079";
+            "0x01198a7dceac6e4c5bb16eb29c6ddf57cd22affb4be476f8f4e8d3131d75bae0";
           const { abi: namiAbi } = await provider.getClassAt(namiAddress);
 
           if (namiAbi === undefined) {
