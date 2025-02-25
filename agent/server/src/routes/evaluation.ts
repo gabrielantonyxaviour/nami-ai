@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import { SupabaseService } from "../services/supabase.service.js";
 import { generateNGOActivityQuery } from "../utils/evaluation.js";
 import OpenAI from "openai";
+import { Account, constants, Contract, RpcProvider } from "starknet";
 
 // const isProd = JSON.parse(process.env.IS_PROD || "false");
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
@@ -14,7 +15,7 @@ const router = Router();
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     console.log(req.body);
-    const { ngoId, disasterId } = req.body;
+    const { ngoId, disasterId, withdrawAddress } = req.body;
     console.log("NGO ID: ", ngoId);
     console.log("Disaster ID: ", disasterId);
 
@@ -71,8 +72,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     if (searchResultsItems.length === 0) {
       res.json({
         response:
-          "Sorry the funds cannot be sanctioned. I could not find any valid proof of your service",
+          "Sorry the funds cannot be sanctioned. I could not find any valid proof of your service.",
       });
+      return;
     } else {
       const searchItem = JSON.stringify(searchResultsItems[0], null, 2);
       const aiResponse = await openai.chat.completions.create({
@@ -80,7 +82,8 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         messages: [
           {
             role: "system",
-            content: "You are a NGO",
+            content:
+              'You hold a lot of donations made by the public. You need to verify the following services done by the NGO towards the cause of the disaster and unlock a percentage of the funds in your vault to this NGO. Percentage output should be between 1 to 100. You should return a response JSON in this format: ```json\n{ "percentage": "number" } ``` ',
           },
           {
             role: "user",
@@ -88,18 +91,80 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
           },
         ],
       });
-      const { response, claimAmount } = JSON.parse(
-        aiResponse.choices[0].message.content || "{}"
-      );
-      if (response) {
-        if (response == "Approved") {
-          console.log("Claim Amount");
-          console.log(claimAmount);
-          // Send a tx to claim funds
+      const messageContent = aiResponse.choices[0].message.content;
+      if (!messageContent) {
+        res.json({
+          response:
+            "Sorry the funds cannot be sanctioned. I could not find any valid proof of your service.",
+        });
+        return;
+      }
+      const cleanJson = messageContent
+        .replace(/^```json\n/, "")
+        .replace(/\n```$/, "");
+      console.log(cleanJson);
+      const { percentage } = JSON.parse(cleanJson);
+      if (percentage) {
+        console.log("Setting up StarkNet provider and account...");
+        const provider = new RpcProvider({
+          nodeUrl: `https://starknet-sepolia.public.blastapi.io`,
+        });
+        const aiAgentAccount = new Account(
+          provider,
+          process.env.STARKNET_AGENT_ADDRESS || "",
+          process.env.STARKNET_AGENT_PRIVATE_KEY || "",
+          undefined,
+          constants.TRANSACTION_VERSION.V3
+        );
+        const vaultAddress = disaster.vault_address;
+
+        const { abi: vaultAbi } = await provider.getClassAt(vaultAddress);
+        console.log("Connecting to Vault contract...");
+        const vaultContract = new Contract(vaultAbi, vaultAddress, provider);
+
+        vaultContract.connect(aiAgentAccount);
+        // Get the amount stored in the vault
+
+        console.log("Getting the amount stored in the vault...");
+        const amountStored = await vaultContract.get_amount();
+        console.log("Amount stored in the vault:", amountStored);
+
+        const claimmableAmount =
+          (BigInt(amountStored) * BigInt(percentage)) / BigInt(100);
+        console.log("Claimable amount:", claimmableAmount);
+
+        // Disperse tehe amount required by the NGO
+        console.log("Populating withdraw transaction...");
+        const withdrawTx = vaultContract.populate("withdraw", [
+          withdrawAddress,
+          claimmableAmount,
+        ]);
+
+        console.log("Sending withdraw Transaction....");
+        const res = await vaultContract.withdraw(withdrawTx.calldata);
+
+        console.log("waiting for tx confirmation...");
+        const txResponse = await provider.waitForTransaction(
+          res.transaction_hash
+        );
+
+        if (txResponse.isSuccess()) {
+          console.log("Transaction successful!");
+          res.json({
+            status: "SUCCESS",
+            amount: claimmableAmount.toString(),
+          });
+          return;
+        } else {
+          res.json({
+            status: "FAILED",
+            amount: claimmableAmount.toString(),
+          });
+          return;
         }
       }
     }
-    res.json({ searchResultsItems });
+    return;
   } catch (error) {
     console.error("Error processing chat:", error);
     res.status(500).json({ error: "Internal server error" });

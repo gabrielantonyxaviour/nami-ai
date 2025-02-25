@@ -145,6 +145,7 @@ export class SearchService extends BaseService {
             console.log("Transaction successful!");
             const events = txResponse.events;
             const disasterId = Number(events[0].data[0]);
+            const vaultAddress = events[0].data[1];
 
             const donationUrl =
               "https://stark-nami-ai.vercel.app/embed/" + disasterId;
@@ -163,9 +164,10 @@ export class SearchService extends BaseService {
               description: description || "A very bad thing happened",
               funds_needed: funds_needed || "1000",
               type: type || "natural disaster",
-              sources: source_url ? [source_url] : [],
+              sources: source_url ? [source_url] : ["ReliefWeb"],
               location: location || "Earth",
               created_at: new Date().toISOString(),
+              vault_address: vaultAddress,
               tweet_url: tweetUrl,
               funds_raised: "0",
             });
