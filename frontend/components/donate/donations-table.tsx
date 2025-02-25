@@ -118,7 +118,13 @@ export type Donation = {
 };
 
 // DataTable component using ShadCN
-export default function DonationsTable({ apply }: { apply: boolean }) {
+export default function DonationsTable({
+  apply,
+  id,
+}: {
+  apply: boolean;
+  id: string;
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

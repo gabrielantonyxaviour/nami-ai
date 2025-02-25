@@ -15,12 +15,15 @@ import DonateBody from "./body";
 import DonationTable from "./donations-table";
 
 import { gql } from "@apollo/client";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import ApplyForm from "./apply-form";
+import ClaimsTab from "./claims-tab";
 
 export default function Donate({ id }: { id: string }) {
   const disaster = disasters.find((disaster) => disaster.id === parseInt(id));
   const [showSwapModalPopover, setShowSwapModalPopover] = useState(false);
   const [donationData, setDonationData] = useState([]);
+  const pathname = usePathname();
 
   useEffect(() => {
     (async function () {
@@ -55,7 +58,14 @@ export default function Donate({ id }: { id: string }) {
       <DonateHero disaster={disaster} />
       <div className="flex flex-col pt-6">
         <DonateBody disaster={disaster} />
-        <DonationTable apply={apply} />
+        {pathname.split("/")[1] == "donate" ? (
+          <>
+            <DonationTable apply={apply} id={id} />
+            <ClaimsTab id={id} />
+          </>
+        ) : (
+          <ApplyForm id={id} />
+        )}
       </div>
     </div>
   ) : (
