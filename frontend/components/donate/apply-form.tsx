@@ -160,7 +160,7 @@ export default function ApplyForm({ id }: { id: string }) {
             Apply for Claim
           </CardTitle>
           <CardDescription>
-            Enter the information of the NGO you'd like to register.
+            Enter the information of the NGO you&apos;d like to register.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
