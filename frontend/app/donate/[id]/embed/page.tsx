@@ -114,32 +114,38 @@ export default function Donate({
     (async function () {
       try {
         const response = await fetch(
-          "/api/supabase/disasters/embed" + params.id
+          "/api/supabase/disasters/embed/" + params.id
         );
         const d = await response.json();
-        setFetchedDisaster({
-          id: d.id,
-          title: d.title,
-          images: [
-            [
-              "/disasters/bangkok.png",
-              "/disasters/brazil.png",
-              "/disasters/tokyo.png",
-              "/disasters/vietnam.png",
-            ][Math.floor(Math.random() * 4)],
-          ],
-          coordinates: {
-            lat: 13.7563,
-            lng: 100.5018,
-          },
-          description: d.description,
-          attestationId: "onchain_evm_84532_0xb23",
-          createdAt: d.created_at,
-          totalRaisedInUSD: d.funds_raised,
-          requiredFundsInUSD: d.funds_needed,
-          vaultAddress: d.vault_address,
-          subName: d.sub_name,
-        });
+        if (d.error) {
+          console.log("Error fetching Disaster");
+        } else {
+          console.log("Fetched Disaster");
+          console.log(d);
+          setFetchedDisaster({
+            id: d.id,
+            title: d.title,
+            images: [
+              [
+                "/disasters/bangkok.png",
+                "/disasters/brazil.png",
+                "/disasters/tokyo.png",
+                "/disasters/vietnam.png",
+              ][Math.floor(Math.random() * 4)],
+            ],
+            coordinates: {
+              lat: 13.7563,
+              lng: 100.5018,
+            },
+            description: d.description,
+            attestationId: "onchain_evm_84532_0xb23",
+            createdAt: d.created_at,
+            totalRaisedInUSD: d.funds_raised,
+            requiredFundsInUSD: d.funds_needed,
+            vaultAddress: d.vault_address,
+            subName: d.sub_name,
+          });
+        }
       } catch (e) {
         console.log(e);
       }
@@ -246,13 +252,20 @@ export default function Donate({
         amount: BigInt(amountInSatoshis),
       });
 
-      setTxHash(transactionId || "");
-      setOverallDonations(parseInt(donateFundsAmount));
+      if (!transactionId) {
+        toast({
+          title: "Insufficient Balance!",
+          description: `Please make sure you have enough balance to donate`,
+        });
+      } else {
+        setTxHash(transactionId || "");
+        setOverallDonations(parseInt(donateFundsAmount));
 
-      toast({
-        title: "Bitcoin Donation Successful!",
-        description: `Thank you for your donation. Transaction ID: ${transactionId}`,
-      });
+        toast({
+          title: "Bitcoin Donation Successful!",
+          description: `Thank you for your donation. Transaction ID: ${transactionId}`,
+        });
+      }
     } catch (error) {
       console.error("Bitcoin transaction error:", error);
       toast({
