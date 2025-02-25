@@ -48,6 +48,7 @@ import {
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { isBitcoinWallet } from "@dynamic-labs/bitcoin";
 import { isSolanaWallet } from "@dynamic-labs/solana";
+import { HardcodedDisaster } from "@/lib/type";
 
 export default function Donate({
   params,
@@ -57,7 +58,7 @@ export default function Donate({
   };
 }) {
   const disaster = disasters.find(
-    (disaster) => disaster.id === parseInt(params.id)
+    (disaster) => disaster.id === parseInt(params.id) % 4
   );
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
@@ -97,6 +98,8 @@ export default function Donate({
   );
   const [txHash, setTxHash] = useState<string>("");
   const [connectedWalletType, setConnectedWalletType] = useState<string>("");
+  const [fetchedDisaster, setFetchedDisaster] =
+    useState<HardcodedDisaster | null>(null);
 
   // Reset everything on initial load
   useEffect(() => {
@@ -106,6 +109,42 @@ export default function Donate({
     if (isLoggedIn) handleLogOut();
     if (address) disconnect();
   }, []);
+
+  useEffect(() => {
+    (async function () {
+      try {
+        const response = await fetch(
+          "/api/supabase/disasters/embed" + params.id
+        );
+        const d = await response.json();
+        setFetchedDisaster({
+          id: d.id,
+          title: d.title,
+          images: [
+            [
+              "/disasters/bangkok.png",
+              "/disasters/brazil.png",
+              "/disasters/tokyo.png",
+              "/disasters/vietnam.png",
+            ][Math.floor(Math.random() * 4)],
+          ],
+          coordinates: {
+            lat: 13.7563,
+            lng: 100.5018,
+          },
+          description: d.description,
+          attestationId: "onchain_evm_84532_0xb23",
+          createdAt: d.created_at,
+          totalRaisedInUSD: d.funds_raised,
+          requiredFundsInUSD: d.funds_needed,
+          vaultAddress: d.vault_address,
+          subName: d.sub_name,
+        });
+      } catch (e) {
+        console.log(e);
+      }
+    })();
+  }, [params.id]);
 
   // Clean up when wallet disconnects
   useEffect(() => {
@@ -390,27 +429,40 @@ export default function Donate({
           </div>
           <div className="w-full h-[250px] overflow-hidden rounded-xl">
             <Image
-              src={disaster.images[0]}
+              src={(fetchedDisaster ? fetchedDisaster : disaster).images[0]}
               alt="Zoomed Image"
               width={800}
               height={400}
               className="w-full h-full object-cover"
             />
           </div>
-          <p className="nouns tracking-widest text-xl">{disaster.title}</p>
-          <p className="text-sm text-[#7C7C7A]">{disaster.description}</p>
+          <p className="nouns tracking-widest text-xl">
+            {(fetchedDisaster ? fetchedDisaster : disaster).title}
+          </p>
+          <p className="text-sm text-[#7C7C7A]">
+            {(fetchedDisaster ? fetchedDisaster : disaster).description}
+          </p>
           <Card className="w-full bg-[#F2F2F2]">
             <CardContent className="relative pt-6 pb-4 px-6 flex flex-col space-y-4">
               <div>
                 <p className="nouns tracking-wider text-sm text-[#7C7C7A] pb-2">{`$${
                   apply == true
-                    ? disaster.totalRaisedInUSD.toLocaleString()
+                    ? (fetchedDisaster
+                        ? fetchedDisaster
+                        : disaster
+                      ).totalRaisedInUSD.toLocaleString()
                     : overallDonations.toString()
-                } out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
+                } out of $${(fetchedDisaster
+                  ? fetchedDisaster
+                  : disaster
+                ).requiredFundsInUSD.toLocaleString()} raised`}</p>
                 <Progress
                   value={
-                    (disaster.totalRaisedInUSD * 100) /
-                    disaster.requiredFundsInUSD
+                    ((fetchedDisaster ? fetchedDisaster : disaster)
+                      .totalRaisedInUSD *
+                      100) /
+                    (fetchedDisaster ? fetchedDisaster : disaster)
+                      .requiredFundsInUSD
                   }
                   className="h-2"
                 />

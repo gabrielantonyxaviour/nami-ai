@@ -75,6 +75,7 @@ export class SupabaseService extends BaseService {
   }
 
   public async createDisaster(disaster: {
+    id: string;
     title: string;
     description: string;
     funds_needed: string;

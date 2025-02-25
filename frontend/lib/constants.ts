@@ -10,7 +10,10 @@ import {
 } from "viem";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { baseSepolia, polygonAmoy, scrollSepolia, sepolia } from "viem/chains";
+
 import { HardcodedDisaster } from "./type";
+
+export const STARK_COLOUR = "#151454";
 
 export const idToChain: Record<number, Chain> = {
   [baseSepolia.id]: baseSepolia,

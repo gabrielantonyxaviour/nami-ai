@@ -165,6 +165,7 @@ export class SearchService extends BaseService {
 
             console.log("Saving disaster to Supabase...");
             await supabaseService.createDisaster({
+              id: disasterId.toString(),
               title: title || "Disaster",
               description: description || "A very bad thing happened",
               funds_needed: funds_needed || "1000",

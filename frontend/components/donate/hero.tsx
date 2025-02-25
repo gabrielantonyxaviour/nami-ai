@@ -199,12 +199,6 @@ export default function DonateHero({
                   </p>
                 </Button>
               )}
-              <p className="text-[10px] sen text-center text-[#7c7c7a] pt-4">
-                {disaster.vaultAddress}
-              </p>
-              <p className="text-[10px] sen text-center text-[#7c7c7a]">
-                {disaster.subName}
-              </p>
             </div>
 
             <Image

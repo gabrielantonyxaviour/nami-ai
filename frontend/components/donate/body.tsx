@@ -24,6 +24,11 @@ export default function DonateBody({
       <div className="flex space-x-4">
         <Card className=" rounded-[8px] ">
           <CardContent className="flex flex-col justify-center items-center py-3 px-5 ">
+            <Image src={"/news/x.png"} width={80} height={80} alt="x" />
+          </CardContent>
+        </Card>
+        <Card className=" rounded-[8px] ">
+          <CardContent className="flex flex-col justify-center items-center py-3 px-5 ">
             <Image
               src={"/news/guardian.png"}
               width={80}
