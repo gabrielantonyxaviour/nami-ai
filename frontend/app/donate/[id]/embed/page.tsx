@@ -1,26 +1,28 @@
 "use client";
-
+import { useEnvironmentStore } from "@/components/context";
 import { disasters, idToChain } from "@/lib/constants";
 import Image from "next/image";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { idToChainInfo, idToTokenInfo, publicClients } from "@/lib/constants";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { baseSepolia, polygonAmoy, scrollSepolia, sepolia } from "viem/chains";
-import { useEnvironmentStore } from "@/components/context";
 import {
-  createPublicClient,
   createWalletClient,
   custom,
   erc20Abi,
   formatUnits,
-  http,
   parseUnits,
   zeroAddress,
 } from "viem";
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { Input } from "@/components/ui/input";
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi";
 import { toast } from "@/hooks/use-toast";
@@ -42,7 +44,8 @@ import {
   useWalletOptions,
 } from "@dynamic-labs/sdk-react-core";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
-import { disconnect } from "process";
+import { isBitcoinWallet } from "@dynamic-labs/bitcoin";
+import { isSolanaWallet } from "@dynamic-labs/solana";
 
 export default function Donate({
   params,
@@ -56,14 +59,12 @@ export default function Donate({
   );
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
-  const { address, chainId } = useAccount();
+  const { address, chainId, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const [selectedChainId, setSelectedChainId] = useState<number>(0);
-  const [openBasePayModal, setOpenBasePayModal] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<number>(0);
   const [apply, setApply] = useState(false);
   const searchParams = useSearchParams();
-  const [openEvmPayModal, setOpenEvmPayModal] = useState(false);
   const [donateFundsAmount, setDonateFundsAmount] = useState("0");
   const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>("");
   const { switchChainAsync } = useSwitchChain();
@@ -71,25 +72,69 @@ export default function Donate({
     "crypto" | "fiat" | null
   >(null);
   const { setOverallDonations, overallDonations } = useEnvironmentStore(
-    (store) => store
+    (store: any) => store
   );
   const vaultAddress = "0xace8655DE7f2a1865DDd686CFcdD47447B86965C";
-  const { setShowAuthFlow, handleLogOut } = useDynamicContext();
+  const bitcoinAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+  const solanaAddress = "5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CmPEwKgVWc8";
+  const {
+    primaryWallet,
+    setShowAuthFlow,
+    handleLogOut,
+    user,
+    networkConfigurations,
+  } = useDynamicContext();
   const isLoggedIn = useIsLoggedIn();
-  const { selectWalletOption } = useWalletOptions();
+  const { walletOptions, selectWalletOption } = useWalletOptions();
 
-  // Add these at the top of your component
+  // State variables
   const [tokenBalances, setTokenBalances] = useState<{ [key: string]: string }>(
     {}
   );
   const [txHash, setTxHash] = useState<string>("");
+  const [connectedWalletType, setConnectedWalletType] = useState<string>("");
 
+  // Reset everything on initial load
   useEffect(() => {
     console.log(disaster);
     console.log(params.id);
+
     if (isLoggedIn) handleLogOut();
     if (address) disconnect();
   }, []);
+
+  // Clean up when wallet disconnects
+  useEffect(() => {
+    if (!isConnected && !primaryWallet) {
+      // Reset everything when wallet is disconnected
+      setSelectedPaymentMethod(null);
+      setSelectedTokenAddress("");
+      setDonateFundsAmount("0");
+      setConnectedWalletType("");
+    }
+  }, [isConnected, primaryWallet]);
+
+  // Detect wallet type when primaryWallet changes
+  useEffect(() => {
+    if (primaryWallet) {
+      if (isBitcoinWallet(primaryWallet)) {
+        setConnectedWalletType("bitcoin");
+        setSelectedNetwork(2);
+        // Don't auto-select payment method so user can choose fiat or crypto
+        // setSelectedPaymentMethod("crypto");
+      } else if (isSolanaWallet(primaryWallet)) {
+        setConnectedWalletType("solana");
+        setSelectedNetwork(3);
+        // Don't auto-select payment method so user can choose fiat or crypto
+        // setSelectedPaymentMethod("crypto");
+      }
+      console.log("Connected wallet type:", connectedWalletType);
+      console.log("Primary wallet:", primaryWallet);
+    } else {
+      // Clear wallet type when wallet is disconnected
+      setConnectedWalletType("");
+    }
+  }, [primaryWallet]);
 
   // Add this useEffect to fetch balances when chain or address changes
   useEffect(() => {
@@ -132,13 +177,195 @@ export default function Donate({
     fetchBalances();
   }, [selectedChainId, address]);
 
-  // Update the Select component
+  // Update the apply parameter from URL
   useEffect(() => {
     const applyParam = searchParams.get("apply")
       ? JSON.parse(searchParams.get("apply") as string)
       : false;
     setApply(applyParam);
-  }, [params]);
+  }, [params, searchParams]);
+
+  // Handle Bitcoin transaction
+  const sendBitcoinTransaction = async () => {
+    try {
+      if (!primaryWallet || !isBitcoinWallet(primaryWallet)) {
+        throw new Error("Bitcoin wallet not connected");
+      }
+
+      // Amount in satoshis (1 BTC = 100,000,000 satoshis)
+      const amountInSatoshis = Math.floor(
+        parseFloat(donateFundsAmount) * 100000000
+      );
+
+      // Send Bitcoin using the Dynamic SDK Bitcoin wallet connector
+      const transactionId = await primaryWallet.sendBitcoin({
+        recipientAddress: bitcoinAddress,
+        amount: BigInt(amountInSatoshis),
+      });
+
+      setTxHash(transactionId || "");
+      setOverallDonations(parseInt(donateFundsAmount));
+
+      toast({
+        title: "Bitcoin Donation Successful!",
+        description: `Thank you for your donation. Transaction ID: ${transactionId}`,
+      });
+    } catch (error) {
+      console.error("Bitcoin transaction error:", error);
+      toast({
+        title: "Transaction Failed",
+        description: "Please check your balance and try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle Solana transaction
+  const sendSolanaTransaction = async () => {
+    try {
+      if (!primaryWallet || !isSolanaWallet(primaryWallet)) {
+        throw new Error("Solana wallet not connected");
+      }
+
+      // Get Solana connection
+      const connection = await primaryWallet.getConnection();
+
+      // Create public keys
+      const fromKey = new PublicKey(primaryWallet.address);
+      const toKey = new PublicKey(solanaAddress);
+
+      // Convert amount to lamports (1 SOL = 1,000,000,000 lamports)
+      const amountInLamports = Math.floor(
+        parseFloat(donateFundsAmount) * 1000000000
+      );
+
+      // Create transfer instruction
+      const instructions = [
+        SystemProgram.transfer({
+          fromPubkey: fromKey,
+          lamports: amountInLamports,
+          toPubkey: toKey,
+        }),
+      ];
+
+      // Get latest blockhash
+      const blockhash = await connection.getLatestBlockhash();
+
+      // Create versioned transaction message
+      const messageV0 = new TransactionMessage({
+        instructions,
+        payerKey: fromKey,
+        recentBlockhash: blockhash.blockhash,
+      }).compileToV0Message();
+
+      // Create versioned transaction
+      const transferTransaction = new VersionedTransaction(messageV0);
+
+      // Get signer from wallet
+      const signer = await primaryWallet.getSigner();
+
+      // Sign and send transaction
+      const result = await signer.signAndSendTransaction(transferTransaction);
+
+      setTxHash(result.signature || "");
+      setOverallDonations(parseInt(donateFundsAmount));
+
+      toast({
+        title: "Solana Donation Successful!",
+        description: `Thank you for your donation. Transaction signature: ${result.signature}`,
+      });
+    } catch (error) {
+      console.error("Solana transaction error:", error);
+      toast({
+        title: "Transaction Failed",
+        description: "Please check your balance and try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle EVM transaction
+  const sendEvmTransaction = async () => {
+    try {
+      const publicClient = publicClients[selectedChainId];
+      const walletClient = createWalletClient({
+        chain: idToChain[selectedChainId],
+        transport: custom(window.ethereum),
+      });
+      let hash: `0x${string}`;
+
+      if (selectedTokenAddress === zeroAddress) {
+        hash = await walletClient.sendTransaction({
+          account: address as `0x${string}`,
+          to: vaultAddress as `0x${string}`,
+          value: parseUnits(donateFundsAmount, 18),
+          chain: idToChain[selectedChainId],
+        });
+      } else {
+        const { request } = await publicClient.simulateContract({
+          account: address as `0x${string}`,
+          address: selectedTokenAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: [vaultAddress, parseUnits(donateFundsAmount, 18)],
+        });
+        hash = await walletClient.writeContract(request);
+      }
+
+      setTxHash(hash); // Store the hash
+      setOverallDonations(parseInt(donateFundsAmount));
+
+      toast({
+        title: "Donation Successful!",
+        description: `Thank you for your donation. Check your transaction here: ${hash}`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Transaction Failed",
+        description: "Please check your balance and try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle fiat payment (placeholder for now)
+  const handleFiatPayment = () => {
+    toast({
+      title: "Fiat Payment",
+      description: "Card payment integration coming soon",
+    });
+  };
+
+  // Function to handle donation based on wallet type
+  const handleDonation = async () => {
+    if (selectedPaymentMethod === "fiat") {
+      // Handle fiat payment
+      handleFiatPayment();
+      return;
+    }
+
+    if (isConnected && selectedChainId) {
+      // Handle EVM wallet donation
+      await sendEvmTransaction();
+    } else if (connectedWalletType === "bitcoin") {
+      // Handle Bitcoin donation
+      await sendBitcoinTransaction();
+    } else if (connectedWalletType === "solana") {
+      // Handle Solana donation
+      await sendSolanaTransaction();
+    } else {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect a wallet first",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Check if a wallet is connected (either through wagmi or Dynamic)
+  const hasConnectedWallet = isConnected || primaryWallet;
+
   return disaster ? (
     <div className="w-full h-full mx-auto p-6 sen bg-[#F5EFE0]">
       <>
@@ -151,7 +378,7 @@ export default function Donate({
               alt="logo"
               className="rounded-full"
             />
-            {address && selectedNetwork == 1 ? (
+            {isConnected ? (
               <ConnectButton />
             ) : (
               isLoggedIn && <DynamicWidget variant="modal" />
@@ -171,7 +398,11 @@ export default function Donate({
           <Card className="w-full bg-[#F2F2F2]">
             <CardContent className="relative pt-6 pb-4 px-6 flex flex-col space-y-4">
               <div>
-                <p className="nouns tracking-wider text-sm text-[#7C7C7A] pb-2">{`$${disaster.totalRaisedInUSD.toLocaleString()} out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
+                <p className="nouns tracking-wider text-sm text-[#7C7C7A] pb-2">{`$${
+                  apply == true
+                    ? disaster.totalRaisedInUSD.toLocaleString()
+                    : overallDonations.toString()
+                } out of $${disaster.requiredFundsInUSD.toLocaleString()} raised`}</p>
                 <Progress
                   value={
                     (disaster.totalRaisedInUSD * 100) /
@@ -182,8 +413,8 @@ export default function Donate({
               </div>
 
               <div className="flex flex-col space-y-4">
-                {/* Chain Selection via Images */}
-                {selectedPaymentMethod == "crypto" && (
+                {/* Chain Selection via Images for EVM */}
+                {selectedPaymentMethod === "crypto" && isConnected && (
                   <div className="flex space-x-2 justify-center">
                     {Object.values(idToChainInfo)
                       .sort((a, b) => a.id - b.id)
@@ -222,118 +453,151 @@ export default function Donate({
                 )}
 
                 {/* Amount and Token Selection */}
-
                 <div className="flex flex-col space-y-4">
-                  {selectedPaymentMethod == "crypto" && (
+                  {selectedPaymentMethod === "crypto" && (
                     <div className="flex space-x-2">
                       <Input
                         type="number"
                         placeholder="Enter amount"
                         className="w-3/5"
                         value={donateFundsAmount}
-                        disabled={
-                          selectedTokenAddress === "" || selectedChainId == 0
-                        }
+                        disabled={!selectedPaymentMethod}
                         onChange={(e) => setDonateFundsAmount(e.target.value)}
                       />
-                      <Select
-                        value={selectedTokenAddress}
-                        onValueChange={setSelectedTokenAddress}
-                      >
-                        <SelectTrigger
-                          className="h-10 px-3 py-2 w-2/5 flex items-center justify-between"
-                          disabled={selectedChainId == 0}
+
+                      {/* For EVM wallets - token selection */}
+                      {isConnected && (
+                        <Select
+                          value={selectedTokenAddress}
+                          onValueChange={setSelectedTokenAddress}
                         >
-                          <SelectValue placeholder="Select Token">
-                            {selectedTokenAddress && (
-                              <div className="flex items-center justify-between ">
-                                <div className="flex items-center space-x-3">
-                                  <Image
-                                    src={
-                                      idToTokenInfo[selectedChainId]?.find(
-                                        (token: any) =>
-                                          token.address === selectedTokenAddress
-                                      )?.image
-                                    }
-                                    width={24}
-                                    height={24}
-                                    alt="Token"
-                                    className="rounded-full"
-                                  />
-                                  <div className="font-medium">
-                                    {
-                                      idToTokenInfo[selectedChainId]?.find(
-                                        (token: any) =>
-                                          token.address === selectedTokenAddress
-                                      )?.name
-                                    }
-                                  </div>
-                                </div>
-                                {/* TODO: used absolute right-16 to align the balance to the right of the token name  because the issue with Justify*/}
-                                {/* <div className="text-base text-primary tabular-nums">
-                                  {tokenBalances[selectedTokenAddress]
-                                    ? parseFloat(
-                                        tokenBalances[selectedTokenAddress]
-                                      ).toLocaleString(undefined, {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 6,
-                                      })
-                                    : "0.00"}
-                                </div> */}
-                              </div>
-                            )}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent className="p-1">
-                          {idToTokenInfo[selectedChainId]
-                            ?.sort((a: any, b: any) => a.id - b.id)
-                            .map((tokenInfo: any) => (
-                              <SelectItem
-                                key={tokenInfo.id}
-                                value={tokenInfo.address}
-                                className="focus:bg-primary/10 hover:bg-primary/5 rounded-md cursor-pointer "
-                              >
-                                <div className="flex items-center justify-between w-full gap-2 py-1.5 px-1">
+                          <SelectTrigger
+                            className="h-10 px-3 py-2 w-2/5 flex items-center justify-between"
+                            disabled={selectedChainId === 0}
+                          >
+                            <SelectValue placeholder="Select Token">
+                              {selectedTokenAddress && (
+                                <div className="flex items-center justify-between ">
                                   <div className="flex items-center space-x-3">
                                     <Image
-                                      src={tokenInfo.image}
-                                      width={28}
-                                      height={28}
-                                      alt={tokenInfo.name}
+                                      src={
+                                        idToTokenInfo[selectedChainId]?.find(
+                                          (token: any) =>
+                                            token.address ===
+                                            selectedTokenAddress
+                                        )?.image
+                                      }
+                                      width={24}
+                                      height={24}
+                                      alt="Token"
                                       className="rounded-full"
                                     />
-                                    <span className="font-medium">
-                                      {tokenInfo.name}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="text-sm text-primary tabular-nums">
-                                      {tokenBalances[tokenInfo.address]
-                                        ? parseFloat(
-                                            tokenBalances[tokenInfo.address]
-                                          ).toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 6,
-                                          })
-                                        : "0.00"}
+                                    <div className="font-medium">
+                                      {
+                                        idToTokenInfo[selectedChainId]?.find(
+                                          (token: any) =>
+                                            token.address ===
+                                            selectedTokenAddress
+                                        )?.name
+                                      }
                                     </div>
                                   </div>
                                 </div>
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                              )}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="p-1">
+                            {idToTokenInfo[selectedChainId]
+                              ?.sort((a: any, b: any) => a.id - b.id)
+                              .map((tokenInfo: any) => (
+                                <SelectItem
+                                  key={tokenInfo.id}
+                                  value={tokenInfo.address}
+                                  className="focus:bg-primary/10 hover:bg-primary/5 rounded-md cursor-pointer "
+                                >
+                                  <div className="flex items-center justify-between w-full gap-2 py-1.5 px-1">
+                                    <div className="flex items-center space-x-3">
+                                      <Image
+                                        src={tokenInfo.image}
+                                        width={28}
+                                        height={28}
+                                        alt={tokenInfo.name}
+                                        className="rounded-full"
+                                      />
+                                      <span className="font-medium">
+                                        {tokenInfo.name}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="text-sm text-primary tabular-nums">
+                                        {tokenBalances[tokenInfo.address]
+                                          ? parseFloat(
+                                              tokenBalances[tokenInfo.address]
+                                            ).toLocaleString(undefined, {
+                                              minimumFractionDigits: 2,
+                                              maximumFractionDigits: 6,
+                                            })
+                                          : "0.00"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+
+                      {/* For non-EVM wallets - just show the currency */}
+                      {!isConnected && connectedWalletType === "bitcoin" && (
+                        <div className="flex items-center space-x-2 border rounded-md px-3 py-2 w-2/5">
+                          <Image
+                            src="/chains/bitcoin.png"
+                            width={24}
+                            height={24}
+                            alt="Bitcoin"
+                            className="rounded-full"
+                          />
+                          <span>BTC</span>
+                        </div>
+                      )}
+
+                      {!isConnected && connectedWalletType === "solana" && (
+                        <div className="flex items-center space-x-2 border rounded-md px-3 py-2 w-2/5">
+                          <Image
+                            src="/chains/solana.png"
+                            width={24}
+                            height={24}
+                            alt="Solana"
+                            className="rounded-full"
+                          />
+                          <span>SOL</span>
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  {/* Fiat payment option */}
+                  {selectedPaymentMethod === "fiat" && (
+                    <div className="flex space-x-2">
+                      <Input
+                        type="number"
+                        placeholder="Enter amount in USD"
+                        className="w-full"
+                        value={donateFundsAmount}
+                        onChange={(e) => setDonateFundsAmount(e.target.value)}
+                      />
+                    </div>
+                  )}
+
                   {/* Network Selection */}
-                  {(!address || !isLoggedIn) && (
+                  {!hasConnectedWallet && (
                     <div className="flex space-x-2 justify-center">
                       <Image
                         src={"/chains/eth.png"}
                         width={24}
                         height={24}
                         className={
-                          selectedNetwork == 1
+                          selectedNetwork === 1
                             ? "opacity-100 select-none rounded-full transition"
                             : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full transition"
                         }
@@ -341,9 +605,10 @@ export default function Donate({
                         onClick={() => {
                           setSelectedNetwork(1);
                           setSelectedChainId(0);
-                          setSelectedTokenAddress(""); // Reset selected token
-                          setTokenBalances({}); // Reset token balances
-                          setDonateFundsAmount("0"); // Optionally reset the amount
+                          setSelectedTokenAddress("");
+                          setTokenBalances({});
+                          setDonateFundsAmount("0");
+                          setConnectedWalletType("");
                         }}
                       />
                       <Image
@@ -351,7 +616,7 @@ export default function Donate({
                         width={24}
                         height={24}
                         className={
-                          selectedNetwork == 2
+                          selectedNetwork === 2
                             ? "opacity-100 select-none rounded-full transition"
                             : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full transition"
                         }
@@ -359,9 +624,10 @@ export default function Donate({
                         onClick={() => {
                           setSelectedNetwork(2);
                           setSelectedChainId(0);
-                          setSelectedTokenAddress(""); // Reset selected token
-                          setTokenBalances({}); // Reset token balances
-                          setDonateFundsAmount("0"); // Optionally reset the amount
+                          setSelectedTokenAddress("");
+                          setTokenBalances({});
+                          setDonateFundsAmount("0");
+                          setConnectedWalletType("");
                         }}
                       />
                       <Image
@@ -369,7 +635,7 @@ export default function Donate({
                         width={24}
                         height={24}
                         className={
-                          selectedNetwork == 3
+                          selectedNetwork === 3
                             ? "opacity-100 select-none rounded-full transition"
                             : "opacity-40 hover:opacity-80 hover:scale-110 cursor-pointer select-none rounded-full transition"
                         }
@@ -377,27 +643,46 @@ export default function Donate({
                         onClick={() => {
                           setSelectedNetwork(3);
                           setSelectedChainId(0);
-                          setSelectedTokenAddress(""); // Reset selected token
-                          setTokenBalances({}); // Reset token balances
-                          setDonateFundsAmount("0"); // Optionally reset the amount
+                          setSelectedTokenAddress("");
+                          setTokenBalances({});
+                          setDonateFundsAmount("0");
+                          setConnectedWalletType("");
                         }}
                       />
                     </div>
                   )}
+
                   {/* Payment Method Selection */}
-                  {!address ? (
+                  {!hasConnectedWallet ? (
                     <Button
                       className="bg-primary w-full"
-                      disabled={selectedNetwork == 0}
+                      disabled={selectedNetwork === 0}
                       onClick={() => {
-                        if (selectedNetwork == 1) {
+                        if (selectedNetwork === 1) {
                           if (openConnectModal) openConnectModal();
-                        } else if (selectedNetwork == 2) {
-                          selectWalletOption("BTC");
+                        } else if (selectedNetwork === 2) {
+                          // For Bitcoin
                           setShowAuthFlow(true);
-                        } else if (selectedNetwork == 3) {
-                          selectWalletOption("SOL");
+                          // Filter and select a Bitcoin wallet option if available
+                          const bitcoinWalletOption = walletOptions.find(
+                            (option) =>
+                              option.name.toLowerCase().includes("bitcoin")
+                          );
+                          if (bitcoinWalletOption) {
+                            selectWalletOption(bitcoinWalletOption.key);
+                          }
+                        } else if (selectedNetwork === 3) {
+                          // For Solana
                           setShowAuthFlow(true);
+                          // Filter and select a Solana wallet option if available
+                          const solanaWalletOption = walletOptions.find(
+                            (option) =>
+                              option.name.toLowerCase().includes("solana") ||
+                              option.name.toLowerCase().includes("phantom")
+                          );
+                          if (solanaWalletOption) {
+                            selectWalletOption(solanaWalletOption.key);
+                          }
                         }
                       }}
                     >
@@ -420,10 +705,10 @@ export default function Donate({
                       </Button>
                     </div>
                   ) : selectedPaymentMethod === "crypto" ? (
-                    chainId !== selectedChainId ? (
+                    isConnected && chainId !== selectedChainId ? (
                       <Button
                         className="bg-primary w-full"
-                        disabled={selectedChainId == 0}
+                        disabled={selectedChainId === 0}
                         onClick={async () => {
                           if (!selectedChainId) return;
                           await switchChainAsync({
@@ -441,69 +726,27 @@ export default function Donate({
                       <Button
                         className="bg-primary w-full"
                         disabled={
-                          !selectedTokenAddress ||
-                          !donateFundsAmount ||
-                          parseFloat(donateFundsAmount) <= 0
+                          (isConnected &&
+                            (!selectedTokenAddress ||
+                              !donateFundsAmount ||
+                              parseFloat(donateFundsAmount) <= 0)) ||
+                          (!isConnected &&
+                            (!donateFundsAmount ||
+                              parseFloat(donateFundsAmount) <= 0))
                         }
-                        onClick={async () => {
-                          try {
-                            const publicClient = publicClients[selectedChainId];
-                            const walletClient = createWalletClient({
-                              chain: idToChain[selectedChainId],
-                              transport: custom(window.ethereum),
-                            });
-                            let hash: `0x${string}`;
-
-                            if (selectedTokenAddress === zeroAddress) {
-                              hash = await walletClient.sendTransaction({
-                                account: address as `0x${string}`,
-                                to: vaultAddress as `0x${string}`,
-                                value: parseUnits(donateFundsAmount, 18),
-                                chain: idToChain[selectedChainId],
-                              });
-                            } else {
-                              const { request } =
-                                await publicClient.simulateContract({
-                                  account: address as `0x${string}`,
-                                  address:
-                                    selectedTokenAddress as `0x${string}`,
-                                  abi: erc20Abi,
-                                  functionName: "transfer",
-                                  args: [
-                                    vaultAddress,
-                                    parseUnits(donateFundsAmount, 18),
-                                  ],
-                                });
-                              hash = await walletClient.writeContract(request);
-                            }
-
-                            setTxHash(hash); // Store the hash
-                            setOverallDonations(parseInt(donateFundsAmount));
-
-                            toast({
-                              title: "Donation Successful!",
-                              description: `Thank you for your donation. Check your transaction here: ${hash}`,
-                            });
-                          } catch (e) {
-                            console.error(e);
-                            toast({
-                              title: "Transaction Failed",
-                              description:
-                                "Please check your balance and try again",
-                              variant: "destructive",
-                            });
-                          }
-                        }}
+                        onClick={handleDonation}
                       >
                         Donate now
                       </Button>
                     )
                   ) : (
+                    // Fiat payment button
                     <Button
-                      className="bg-primary w-full "
-                      onClick={() => {
-                        // Handle fiat payment logic here
-                      }}
+                      className="bg-primary w-full"
+                      disabled={
+                        !donateFundsAmount || parseFloat(donateFundsAmount) <= 0
+                      }
+                      onClick={handleFiatPayment}
                     >
                       Pay with Card
                     </Button>
