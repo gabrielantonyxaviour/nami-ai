@@ -18,6 +18,7 @@ interface NGO {
   image: string | null;
   description: string | null;
   location: string | null;
+  address: string | null;
 }
 
 interface StarkDonation {
@@ -38,7 +39,7 @@ interface StarkClaim {
   disaster: number | null;
   amount: number | null;
   tweet_url: string | null;
-  ngo_details?: NGO;
+  ngo_details?: Omit<NGO, "address">;
 }
 
 interface HardcodedDisaster {

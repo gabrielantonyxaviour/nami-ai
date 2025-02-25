@@ -15,7 +15,7 @@ const router = Router();
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     console.log(req.body);
-    const { ngoId, disasterId, withdrawAddress } = req.body;
+    const { ngoId, disasterId } = req.body;
     console.log("NGO ID: ", ngoId);
     console.log("Disaster ID: ", disasterId);
 
@@ -136,7 +136,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         // Disperse tehe amount required by the NGO
         console.log("Populating withdraw transaction...");
         const withdrawTx = vaultContract.populate("withdraw", [
-          withdrawAddress,
+          ngo.address,
           claimmableAmount,
         ]);
 

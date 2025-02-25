@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NGO, StarkClaim } from "@/lib/type";
 
-const ngos: NGO[] = [
+const ngos: Omit<NGO, "address">[] = [
   {
     id: 1,
     created_at: "2023-11-15T09:00:00Z",
