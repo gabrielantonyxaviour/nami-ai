@@ -46,7 +46,14 @@ export default function Disasters() {
             return {
               id: d.id,
               title: d.title,
-              images: [],
+              images: [
+                [
+                  "/disasters/bangkok.png",
+                  "/disasters/brazil.png",
+                  "/disasters/tokyo.png",
+                  "/disasters/vietnam.png",
+                ][Math.floor(Math.random() * 4)],
+              ],
               coordinates: {
                 lat: 13.7563,
                 lng: 100.5018,

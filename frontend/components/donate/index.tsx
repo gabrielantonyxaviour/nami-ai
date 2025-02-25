@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  disasters,
-  GET_DISASTERS_BY_ADDRESS_QUERY,
-  GET_DISASTERS_QUERY,
-  graphClient,
-} from "@/lib/constants";
+import { disasters } from "@/lib/constants";
 import Image from "next/image";
 
 import { useEffect, useState } from "react";
@@ -13,8 +8,6 @@ import { useEffect, useState } from "react";
 import DonateHero from "./hero";
 import DonateBody from "./body";
 import DonationTable from "./donations-table";
-
-import { gql } from "@apollo/client";
 import { usePathname, useSearchParams } from "next/navigation";
 import ApplyForm from "./apply-form";
 import ClaimsTab from "./claims-tab";
