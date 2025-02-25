@@ -3,6 +3,8 @@ mod NamiDisaster {
     use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use core::traits::Into;
+    use core::array::ArrayTrait;
+    use core::byte_array::ByteArray;
 
     #[starknet::interface]
     trait IERC20<TContractState> {
@@ -19,7 +21,7 @@ mod NamiDisaster {
     #[storage]
     struct Storage {
         funds_needed: u256,
-        ipfs_uri: felt252,
+        ipfs_uri: ByteArray,
         owner: ContractAddress,
         usdc_address: ContractAddress,
         total_donated: u256,
@@ -56,7 +58,7 @@ mod NamiDisaster {
         ref self: ContractState,
         funds_needed_low: felt252,
         funds_needed_high: felt252,
-        ipfs_uri: felt252,
+        ipfs_uri: ByteArray,
         owner: ContractAddress,
         usdc_address: ContractAddress,
     ) {
@@ -73,13 +75,14 @@ mod NamiDisaster {
         self.usdc_address.write(usdc_address);
         self.total_donated.write(0.into());
     }
+
     #[starknet::interface]
     trait IDisaster<TContractState> {
         fn donate(ref self: TContractState, amount: u256);
         fn withdraw(ref self: TContractState, to: ContractAddress, amount: u256);
         fn get_balance(self: @TContractState) -> u256;
         fn get_funds_needed(self: @TContractState) -> u256;
-        fn get_ipfs_uri(self: @TContractState) -> felt252;
+        fn get_ipfs_uri(self: @TContractState) -> ByteArray;
         fn get_total_donated(self: @TContractState) -> u256;
         fn handle_direct_transfer(ref self: TContractState, from: ContractAddress, amount: u256);
     }
@@ -125,7 +128,7 @@ mod NamiDisaster {
             self.funds_needed.read()
         }
 
-        fn get_ipfs_uri(self: @ContractState) -> felt252 {
+        fn get_ipfs_uri(self: @ContractState) -> ByteArray {
             self.ipfs_uri.read()
         }
 

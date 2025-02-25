@@ -6,6 +6,7 @@ mod NamiCore {
     };
     use core::array::ArrayTrait;
     use core::traits::Into;
+    use core::byte_array::ByteArray;
 
     #[storage]
     struct Storage {
@@ -27,7 +28,7 @@ mod NamiCore {
         disaster_id: u256,
         disaster_address: ContractAddress,
         funds_needed: u256,
-        ipfs_uri: felt252,
+        ipfs_uri: ByteArray,
     }
 
     #[constructor]
@@ -43,7 +44,7 @@ mod NamiCore {
         fn get_allowed_addresses(self: @TContractState, address: ContractAddress) -> bool;
         fn set_allowed_addresses(ref self: TContractState, address: ContractAddress);
         fn create_disaster(
-            ref self: TContractState, funds_needed: u256, ipfs_uri: felt252,
+            ref self: TContractState, funds_needed: u256, ipfs_uri: ByteArray,
         ) -> ContractAddress;
         fn get_disaster(self: @TContractState, disaster_id: u256) -> ContractAddress;
         fn get_all_disasters(self: @TContractState) -> Array<ContractAddress>;
@@ -60,20 +61,18 @@ mod NamiCore {
         }
 
         fn create_disaster(
-            ref self: ContractState, funds_needed: u256, ipfs_uri: felt252,
+            ref self: ContractState, funds_needed: u256, ipfs_uri: ByteArray,
         ) -> ContractAddress {
             let caller = get_caller_address();
             assert(self.allowed_addresses.entry(caller).read(), 'Not allowed');
 
             let disaster_id = self.disaster_count.read();
-
             let mut constructor_calldata = ArrayTrait::new();
             constructor_calldata.append(funds_needed.low.into());
             constructor_calldata.append(funds_needed.high.into());
-            constructor_calldata.append(ipfs_uri);
+            constructor_calldata.append(ipfs_uri.len().into());
             constructor_calldata.append(caller.into());
             constructor_calldata.append(self.usdc_address.read().into());
-
             let (deployed_address, _) = starknet::syscalls::deploy_syscall(
                 self.disaster_class_hash.read(),
                 disaster_id.try_into().unwrap(),
