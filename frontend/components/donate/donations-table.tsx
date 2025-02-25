@@ -341,7 +341,7 @@ export default function DonationsTable({
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
@@ -386,9 +386,9 @@ export default function DonationsTable({
               ))}
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={networkType == "-1"}>
+          <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               className={`ml-2 sen font-semibold focus-visible:ring-0 focus-visible:ring-none focus-visible:ring-offset-0 ${

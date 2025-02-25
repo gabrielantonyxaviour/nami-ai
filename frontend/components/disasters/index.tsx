@@ -20,6 +20,7 @@ import {
   sortDisastersByTotalRaisedAsc,
   sortDisastersByTotalRaisedDesc,
 } from "@/lib/utils";
+import { HardcodedDisaster } from "@/lib/type";
 
 export default function Disasters() {
   const [sort, setSort] = useState("date");
@@ -30,19 +31,36 @@ export default function Disasters() {
     lng: number;
   }>({ lat: 35.6762, lng: 15.8917 });
   const [fetchingDisasters, setFetchingDisasters] = useState(true);
+  const [fetchedDisasters, setFetchedDisasters] = useState<HardcodedDisaster[]>(
+    []
+  );
 
   useEffect(() => {
     try {
       (async function () {
-        // const data = await graphClient.query({
-        //   query: GET_DISASTERS_QUERY,
-        //   variables: {
-        //     orderBy: sort,
-        //     orderDirection: order,
-        //   },
-        // });
-        // console.log(data);
-        // setSubgraphData(data.data.disasters);
+        const response = await fetch("/api/supabase/disasters");
+        const data = await response.json();
+        console.log(data);
+        setFetchedDisasters(
+          data.map((d: any) => {
+            return {
+              id: d.id,
+              title: d.title,
+              images: [],
+              coordinates: {
+                lat: 13.7563,
+                lng: 100.5018,
+              },
+              description: d.description,
+              attestationId: "onchain_evm_84532_0xb23",
+              createdAt: d.created_at,
+              totalRaisedInUSD: d.funds_raised,
+              requiredFundsInUSD: d.funds_needed,
+              vaultAddress: d.vault_address,
+              subName: d.sub_name,
+            };
+          })
+        );
       })();
     } catch (e) {
       console.log(e);
@@ -164,15 +182,17 @@ export default function Disasters() {
                 </div>
                 <ScrollArea className="h-[600px] mt-4">
                   <div className="flex flex-col space-y-2  pr-3">
-                    {currentDisasters.map((disaster, idx) => (
-                      <Disaster
-                        key={idx}
-                        {...disaster}
-                        setFocusCoordinates={() => {
-                          setFocusedCoordinates(disaster.coordinates);
-                        }}
-                      />
-                    ))}
+                    {[...fetchedDisasters, ...currentDisasters].map(
+                      (disaster, idx) => (
+                        <Disaster
+                          key={idx}
+                          {...disaster}
+                          setFocusCoordinates={() => {
+                            setFocusedCoordinates(disaster.coordinates);
+                          }}
+                        />
+                      )
+                    )}
                   </div>
                   <ScrollBar
                     orientation="vertical"
